@@ -1,5 +1,7 @@
 # Passman
 
+A simple password manager for your terminal.
+
 ## TODO:
 
 ### CLI

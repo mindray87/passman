@@ -1,0 +1,7 @@
+language: rust
+
+before_install:
+  - sudo apt-get install -y libx11-xcb-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-xfixes0-dev
+
+script:
+  - ./run-tests.sh
