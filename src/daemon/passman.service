@@ -1,0 +1,15 @@
+[Unit]
+Description=Passman background deamon.
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=3
+ExecStart=<<DIR>>/target/debug/daemon-test
+
+[Install]
+WantedBy=multi-user.target
+
+# cp passman.service /etc/systemd/system/
+# systemctl start passman
