@@ -10,6 +10,7 @@ use rand::RngCore;
 use rand::rngs::OsRng;
 use rustc_serialize::base64;
 use rustc_serialize::base64::ToBase64;
+use crypto::buffer::RefWriteBuffer;
 
 fn main() {
     let listener = TcpListener::bind("0.0.0.0:7878").unwrap();
@@ -34,22 +35,24 @@ fn handle_connection(mut stream: TcpStream) {
 
     // TODO: Read until message ends
     // TODO: Encrypt socket connection
-    let mut buffer = [0; 1024];
-    stream.read(&mut buffer).unwrap();
+    let mut buffer = String::new();
+    stream.read_to_string(&mut buffer);
 
-    let (status_line, filename) = if buffer.starts_with(b"GET / HTTP/1.1\r\n") {
-        get()
-    } else if buffer.starts_with(b"DELETE / HTTP/1.1\r\n") {
-        delete()
-    } else if buffer.starts_with(b"POST / HTTP/1.1\r\n") {
-        post()
-    } else {
-        method_not_allowed()
-    };
+    println!("Got this: '{}'", buffer);
 
-    let response = format!("{}{}", status_line, filename);
-
-    stream.write(response.as_bytes()).unwrap();
+    // let (status_line, filename) = if buffer.starts_with(b"GET / HTTP/1.1\r\n") {
+    //     get()
+    // } else if buffer.starts_with(b"DELETE / HTTP/1.1\r\n") {
+    //     delete()
+    // } else if buffer.starts_with(b"POST / HTTP/1.1\r\n") {
+    //     post()
+    // } else {
+    //     method_not_allowed()
+    // };
+    //
+    // let response = format!("{}{}", status_line, filename);
+    //
+    stream.write(buffer.as_bytes()).unwrap();
     stream.flush().unwrap();
 }
 
@@ -104,12 +107,13 @@ fn create_and_open_password_file(filename: &String) -> String {
     return open_password_file(filename);
 }
 
-// TODO: provide endpoints to open, close and create a new password database
+fn close_password_file(){
+
+}
 
 #[cfg(test)]
 mod tests {
     use std::fs;
-    use std::fs::File;
     use std::ops::Add;
 
     use crate::{create_and_open_password_file, open_password_file};
@@ -125,7 +129,7 @@ mod tests {
         let filename = String::from("my_test_password_file");
         let cont = create_and_open_password_file(&filename);
         println!("content: {}", cont);
-        fs::remove_file(filename.add(".pass"));
+        fs::remove_file(filename.add(".pass")).unwrap();
         assert!(cont.starts_with("PASSMAN"));
     }
 }
