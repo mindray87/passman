@@ -6,10 +6,7 @@ After=network.target
 Type=simple
 Restart=always
 RestartSec=3
-ExecStart=/home/patrick/Documents/SS2020/Rust/passman/target/debug/passman-daemon
+ExecStart=/home/<<USER>>/passman/target/debug/passman-daemon
 
 [Install]
 WantedBy=multi-user.target
-
-# cp passman.service /etc/systemd/system/
-# systemctl start passman
