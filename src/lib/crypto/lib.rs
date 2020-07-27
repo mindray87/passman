@@ -3,16 +3,11 @@
 extern crate crypto;
 extern crate rand;
 
-use crypto::{ symmetriccipher, buffer, aes, blockmodes };
-use crypto::buffer::{ ReadBuffer, WriteBuffer, BufferResult };
-
-use rand::rngs::OsRng;
-use rand::RngCore;
-use std::str::from_utf8;
+use crypto::{aes, blockmodes, buffer, symmetriccipher};
+use crypto::buffer::{BufferResult, ReadBuffer, WriteBuffer};
 
 // AES-256/CBC/Pkcs encryption.
-fn encrypt(data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, symmetriccipher::SymmetricCipherError> {
-
+fn aes_encrypt(data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, symmetriccipher::SymmetricCipherError> {
     let mut encryptor = aes::cbc_encryptor(
         aes::KeySize::KeySize256,
         key,
@@ -29,7 +24,7 @@ fn encrypt(data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, symmetricciphe
         final_result.extend(write_buffer.take_read_buffer().take_remaining().iter().map(|&i| i));
         match result {
             BufferResult::BufferUnderflow => break,
-            BufferResult::BufferOverflow => { }
+            BufferResult::BufferOverflow => {}
         }
     }
 
@@ -37,7 +32,7 @@ fn encrypt(data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, symmetricciphe
 }
 
 // AES-256/CBC/Pkcs encryption.
-fn decrypt(encrypted_data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, symmetriccipher::SymmetricCipherError> {
+fn aes_decrypt(encrypted_data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, symmetriccipher::SymmetricCipherError> {
     let mut decryptor = aes::cbc_decryptor(
         aes::KeySize::KeySize256,
         key,
@@ -54,28 +49,50 @@ fn decrypt(encrypted_data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, symm
         final_result.extend(write_buffer.take_read_buffer().take_remaining().iter().map(|&i| i));
         match result {
             BufferResult::BufferUnderflow => break,
-            BufferResult::BufferOverflow => { }
+            BufferResult::BufferOverflow => {}
         }
     }
 
     Ok(final_result)
 }
 
-fn main() {
-    let message = "Hello World!";
+pub fn encrypt(text: &String, key: &String, initial_vector: &[u8; 16]) -> Result<Vec<u8>, symmetriccipher::SymmetricCipherError> {
+    return aes_encrypt(text.as_bytes(), key.as_bytes(), initial_vector);
+}
 
-    let mut key: [u8; 32] = [0; 32];
-    let mut iv: [u8; 16] = [0; 16];
+pub fn decrypt(text: &Vec<u8>, key: &String, initial_vector: &[u8; 16]) -> Result<String, symmetriccipher::SymmetricCipherError> {
+    return aes_decrypt(text.as_slice(), key.as_bytes(), initial_vector)
+        .map(|vector| String::from(std::str::from_utf8(vector.as_slice()).unwrap()));
+}
 
-    OsRng.fill_bytes(&mut key);
-    OsRng.fill_bytes(&mut iv);
+#[cfg(test)]
+mod tests {
+    use rand::RngCore;
+    use rand::rngs::OsRng;
 
-    println!("Plain text: {:x?}", message.as_bytes());
-    let encrypted_data = encrypt(message.as_bytes(), &key, &iv).ok().unwrap();
+    use crate::{decrypt, encrypt};
+    use std::env;
 
-    println!("Encrypted text: {:x?}", encrypted_data.as_slice());
+    #[test]
+    fn en_and_decryption() {
+        env::set_var("RUST_BACKTRACE", "1");
 
-    let decrypted_data = decrypt(&encrypted_data[..], &key, &iv).ok().unwrap();
-    println!("Plain text: {:x?}", decrypted_data.as_slice());
+        let message = String::from("this text is top secret");
+        let key = String::from("keeeey");
+        let mut iv: [u8; 16] = [0; 16];
+        OsRng.fill_bytes(&mut iv);
 
+
+        let encrypted = match encrypt(&message, &key, &iv) {
+            Ok(s) => s,
+            Err(_) => panic!("Encryption failed."),
+        };
+
+        let decrypt = match decrypt(&encrypted, &key, &iv) {
+            Ok(s) => s,
+            Err(_) => panic!("Decryption failed."),
+        };
+
+        assert_eq!(decrypt, message)
+    }
 }
