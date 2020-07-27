@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 Restart=always
 RestartSec=3
-ExecStart=<<DIR>>/target/debug/daemon-test
+ExecStart=/home/patrick/Documents/SS2020/Rust/passman/target/debug/passman-daemon
 
 [Install]
 WantedBy=multi-user.target
