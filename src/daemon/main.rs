@@ -1,3 +1,6 @@
+mod PasswordFile;
+
+use std::collections::HashMap;
 use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
@@ -6,15 +9,17 @@ use std::net::TcpStream;
 use std::ops::Add;
 use std::path::Path;
 
-use rand::RngCore;
+use crypto::buffer::RefWriteBuffer;
 use rand::rngs::OsRng;
+use rand::RngCore;
 use rustc_serialize::base64;
 use rustc_serialize::base64::ToBase64;
-use crypto::buffer::RefWriteBuffer;
-
 
 fn main() {
     let listener = TcpListener::bind("0.0.0.0:7878").unwrap();
+
+    let entries: HashMap<String, String> = HashMap::new();
+    let fileOpen = false;
 
     for stream in listener.incoming() {
         let stream = stream.unwrap();
@@ -28,65 +33,85 @@ fn main() {
 }
 
 fn refuse_connection(mut stream: TcpStream, ip_address: String) {
-    stream.write(format!("IP-Address {} ist not accepted!", ip_address).as_bytes()).unwrap();
+    stream
+        .write(format!("IP-Address {} ist not accepted!", ip_address).as_bytes())
+        .unwrap();
     stream.flush().unwrap();
 }
 
 fn handle_connection(mut stream: TcpStream) {
-
-    // TODO: Read until message ends
-    // TODO: Encrypt socket connection
     let mut buffer = String::new();
     stream.read_to_string(&mut buffer);
 
-    println!("Got this: '{}'", buffer);
+    let response = match buffer
+        .split(" ")
+        .nth(0)
+        .or(Option::Some("BAD REQUEST"))
+        .unwrap()
+    {
+        "GET" => get(&buffer),
+        "ADD" => add(&buffer),
+        "DELETE" => delete(&buffer),
+        "CREATE" => create(&buffer),
+        "OPEN" => open(&buffer),
+        "CLOSE" => close(&buffer),
+        _ => "BAD REQUEST",
+    };
 
-    // let (status_line, filename) = if buffer.starts_with(b"GET / HTTP/1.1\r\n") {
-    //     get()
-    // } else if buffer.starts_with(b"DELETE / HTTP/1.1\r\n") {
-    //     delete()
-    // } else if buffer.starts_with(b"POST / HTTP/1.1\r\n") {
-    //     post()
-    // } else {
-    //     method_not_allowed()
-    // };
-    //
-    // let response = format!("{}{}", status_line, filename);
-    //
-    stream.write(buffer.as_bytes()).unwrap();
+    stream.write(response.as_bytes()).unwrap();
     stream.flush().unwrap();
 }
 
 fn method_not_allowed<'a>() -> (&'a str, &'a str) {
-    ("HTTP/1.1 405 Method Not Allowed\r\n\r\n", "method_not_allowed")
+    (
+        "HTTP/1.1 405 Method Not Allowed\r\n\r\n",
+        "method_not_allowed",
+    )
 }
 
-fn get<'a>() -> (&'a str, &'a str) {
-    // TODO: get the entry and return it
-    ("HTTP/1.1 200 OK\r\n\r\n", "get")
+fn add(message: &String) -> &'static str {
+    message
+        .split("\n")
+        .filter(|x| !x.is_empty())
+        .for_each(|line| println!("'{}'", line));
+    "OK"
 }
 
-fn post<'a>() -> (&'a str, &'a str) {
-    // TODO: create a new entry
-    ("HTTP/1.1 200 OK\r\n\r\n", "post")
+fn delete(message: &String) -> &'static str {
+    "NOT IMPLEMENTED"
 }
 
-fn delete<'a>() -> (&'a str, &'a str) {
-    // TODO: delete an entry
-    ("HTTP/1.1 200 OK\r\n\r\n", "delete")
+fn get(message: &String) -> &'static str {
+    "NOT IMPLEMENTED"
+}
+
+fn create(message: &String) -> &'static str {
+    "NOT IMPLEMENTED"
+}
+
+fn open(message: &String) -> &'static str {
+    "NOT IMPLEMENTED"
+}
+
+fn close(message: &String) -> &'static str {
+    "NOT IMPLEMENTED"
 }
 
 fn open_password_file(filename: String) -> String {
     let contents = match fs::read_to_string(filename) {
         Ok(s) => s,
-        Err(e) => return format!("Something went wrong reading the file!\n{}", e)
+        Err(e) => return format!("Something went wrong reading the file!\n{}", e),
     };
 
     return contents;
 }
 
 fn create_and_open_password_file(filename: &String) -> String {
-    let filename = if filename.ends_with(".pass") { filename.to_string() } else { filename.to_string().add(".pass") };
+    let filename = if filename.ends_with(".pass") {
+        filename.to_string()
+    } else {
+        filename.to_string().add(".pass")
+    };
 
     let path = Path::new(filename.as_str());
     let display = path.display();
@@ -108,9 +133,7 @@ fn create_and_open_password_file(filename: &String) -> String {
     return open_password_file(filename);
 }
 
-fn close_password_file(){
-
-}
+fn close_password_file() {}
 
 #[cfg(test)]
 mod tests {
