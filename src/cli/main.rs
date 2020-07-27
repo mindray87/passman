@@ -12,7 +12,7 @@ use std::env;
 
 fn main() {
     println!("passman starting...");
-    start_connection();
+    let stream = start_connection();
     let args: Vec<String> = env::args().collect();
 
     match args.len() {
@@ -34,6 +34,12 @@ fn main() {
         3 | 4 | 5 => {
             let cmd = &args[1];
             let acc = &args[2];
+            let mut pw_length = String::new();
+            let mut username = &String::new();
+            let mut password = &String::new();
+            let mut input_username = String::new();
+            let mut password_gen = String::new();
+
             match &cmd[..] {
                 "delete" => {
                     println!("del your account {}", acc);
@@ -47,20 +53,18 @@ fn main() {
                     println!("new {}", acc);
                     //Todo: args 4 there or create random
                     if args.len() >= 4 {
-                        let username = &args[3];
+                        username = &args[3];
                     } else {
                         println!("please enter the username u want to use:");
-                        let mut username = String::new();
-
                         std::io::stdin()
-                            .read_line(&mut username)
+                            .read_line(&mut input_username)
                             .expect("Failed to read line");
 
-                        let username: &String = &username;
+                        username = &input_username;
                         println!("your username is {}", username);
                     }
                     if args.len() >= 5 {
-                        let password = &args[4];
+                        password = &args[4];
                         println!("send to daemon");
                     } else {
                         println!("you have not entered a password. Should passman create it for you?");
@@ -75,14 +79,15 @@ fn main() {
                             "y" | "Y" => {
                                 println!("passman will generate your password now.");
                                 println!("How long do you want your password to be? (maximum of 128.");
-                                let mut pw_length = String::new();
+
                                 std::io::stdin()
                                     .read_line(&mut pw_length)
                                     .expect("Failed to read line");
 
-                                let pw_length: u32 = pw_length.trim().parse().expect("Please type a number!");
+                                let pw_length_no: u32 = pw_length.trim().parse().expect("Please type a number!");
                                 //TODO: ask for special chars
-                                let password = make_pass(pw_length);
+                                password_gen = make_pass(pw_length_no);
+                                password = &password_gen;
                                 println!("generated: {}", password);
                             },
                             "n" | "N" => {
@@ -95,6 +100,10 @@ fn main() {
 
                     }
                     //Todo: send create request to daemon
+                    println!("to demon: account:{};username:{};password:{};", acc, username, password);
+                    let data = format!("b'ADD {}\nusername:{};password:{};'", acc, username, password);
+                    println!("data: {}", data);
+                    //stream.write()
                 },
                 _ => print_help()
             }
@@ -113,6 +122,7 @@ use std::io::Write;
 
 fn start_connection() -> Result<TcpStream, &'static str> {
     if let Ok(stream) = TcpStream::connect("127.0.0.1:34254"){
+        println!("Connected to server.");
         Ok(stream)
     } else {
         println!("error");
@@ -120,9 +130,19 @@ fn start_connection() -> Result<TcpStream, &'static str> {
     }
 }
 
+//TODO: Change arguments: uppercase: usize, lower: usize, digits: usize, specials: usize
 pub fn make_pass(length: u32) -> String {
     //TODO: make function that has 4 lists -> digits, upercase lowercase, special chars !"§$%&...
     // concatinate lists as needed and than generate pass -> check afterwards
+    let upper = (b'A'..=b'Z')
+        .map(|c| c as char)
+        .collect::<Vec<_>>();
+    let lower = (b'a'..=b'z')
+        .map(|c| c as char)
+        .collect::<Vec<_>>();
+    let digits = vec![0,1,2,3,4,5,6,7,8,9];
+    let special = vec![b',',b'.',b'_',b'-',b'!',b'$',b'&',b'/',b'(',b')',b'=',b'?',b'#',b'*',b'+',b'<',b'>',b'%',b'(',b')'];
+    println!("digits {:#?}, uppercase: {:#?}, lowercase: {:#?}, special: {:#?}", digits, upper, lower, special);
     let length = length as usize;
     let id = rand::thread_rng().sample_iter(&Alphanumeric).take(length).collect::<String>();
     id
