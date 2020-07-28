@@ -32,7 +32,7 @@ impl PasswordFile {
     }
 
     fn parse_file_content(content: &str) -> Result<HashMap<String, Vec<(&str, &str)>>, Box<dyn Error>> {
-        let re = Regex::new(r"^((>[a-zA-Z0-9]+\n((([^;\n]+:[^;\n]+);)*([^;\n]+:[^\n;]+)))\n)*(>[a-zA-Z0-9]+\n((([^;\n]+:[^;\n]+);)*([^;\n]+:[^\n;]+)))$").unwrap();
+        let re = Regex::new(r"^((>[a-zA-Z0-9]+\n((([^;\n]+:[^;\n]+);)*([^;\n]+:[^\n;]+)))\n)*(>[a-zA-Z0-9]+\n((([^;\n]+:[^;\n]+);)*([^;\n]+:[^\n;]+)))\n*$").unwrap();
         if !re.is_match(content) {
             return Result::Err("Content is not proper formatted!")?;
         }
