@@ -8,7 +8,6 @@ A simple password manager for your terminal.
 - [ ] parse arguments
 - [ ] open connection to daemon
 - [ ] send messages to daemon
-- [ ] receive messages form daemon
 - [ ] clipboard action
 - [ ] password generator
 - [ ] encrypt socket connection
@@ -22,3 +21,20 @@ A simple password manager for your terminal.
 - [ ] send messages
 - [ ] accept only messages form localhost
 - [ ] auto close password file
+
+## Build and Install
+```shell script
+# install dependencies
+sudo apt-get install -y libx11-xcb-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-xfixes0-dev
+
+# build the project
+cargo build
+
+# install the daemon
+sudo cp ~/passman/src/daemon/passman.service /etc/systemd/system/
+sudo sed -i "s/<<USER>>/$USER/g" /etc/systemd/system/passman.service
+sudo systemctl start passman
+
+# run the cli
+TODO
+```

@@ -1,8 +1,31 @@
 # Message Protocol
 
 ## Request:
-GET gmail\n
-
-## Response:
-GET 1234214\n
-password:1234;username:user;name:gmail
+- Get a password entry:
+  ```
+  GET name
+  EOF
+  ```
+- Add a new password entry:
+  ```
+  ADD name
+  key:value;key:value;...
+  EOF
+  ```
+- Delete a password entry:
+  ```
+  DELETE name
+  EOF
+  ```
+- Create a new password file:
+  ```
+  CREATE filename
+  masterkey
+  EOF
+  ```
+- Open a existing password file:
+  ```
+  OPEN filename
+  masterkey
+  EOF
+  ```
