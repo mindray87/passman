@@ -1,9 +1,13 @@
-mod clipboard;
 mod pass;
-use std::env;
+mod clipboard;
+
 use std::net::TcpListener;
 use std::net::TcpStream;
+use std::env;
+use std::io::{BufReader, BufWriter, Write, BufRead};
 
+use rand::Rng;
+use rand::distributions::Alphanumeric;
 //terminal:
 // passman verb option
 // passman get gmail
@@ -12,7 +16,6 @@ use std::net::TcpStream;
 
 fn main() {
     println!("passman starting...");
-    start_connection();
     let args: Vec<String> = env::args().collect();
 
     match TcpStream::connect("localhost:7878") {
@@ -22,13 +25,11 @@ fn main() {
                 1 => print_help(),
                 2 => {
                     let cmd = &args[1];
-                    //let account_name = &args[2];
 
                     match &cmd[..] {
                         "help" => {
-                            println!("help");
                             print_help();
-                        }
+                        },
                         _ => println!("b"),
                     }
                 }
@@ -36,76 +37,45 @@ fn main() {
                 3 | 4 | 5 => {
                     let cmd = &args[1];
                     let acc = &args[2];
-                    let mut pw_length = String::new();
                     let mut username = &String::new();
                     let mut password = &String::new();
-                    let mut input_username = String::new();
-                    let mut password_gen = String::new();
+                    let tmp;
+                    let yes_no: String;
 
                     match &cmd[..] {
                         "delete" => {
-                            println!("del your account {}", acc);
-                            //Todo: Send del request (acc) to daemon
+                            let data = format!("b'DELETE {}'", acc);
+                            msg_daemon(data, stream);
                         }
                         "get" => {
                             println!("get {}", acc);
-                            //Todo: send get request to daemon
+                            let data = format!("b'GET {}'", acc);
+                            msg_daemon(data,stream);
                         }
                         "new" => {
-                            println!("new {}", acc);
-                            //Todo: args 4 there or create random
-                            if args.len() >= 4 {
-                                username = &args[3];
-                            } else {
-                                println!("please enter the username u want to use:");
-                                std::io::stdin()
-                                    .read_line(&mut input_username)
-                                    .expect("Failed to read line");
+                            match args.len() {
+                                3 => {
+                                    // no username no pass
+                                    tmp = ask_for_username();
+                                    username = &tmp;
+                                    yes_no = yes_or_no();
+                                    password = &yes_no;
+                                },
+                                4 => {
+                                    username = &args[3];
+                                    //ask for password generator
+                                    yes_no = yes_or_no();
+                                    password = &yes_no;
 
-                                username = &input_username;
-                                println!("your username is {}", username);
+                                },
+                                5 => {
+                                    password = &args[4];
+                                },
+                                _ => print_help()
                             }
-                            if args.len() >= 5 {
-                                password = &args[4];
-                                println!("send to daemon");
-                            } else {
-                                println!("you have not entered a password. Should passman create it for you?");
-                                let mut answer = String::new();
-                                std::io::stdin()
-                                    .read_line(&mut answer)
-                                    .expect("Failed to read line");
-
-                                let yes_no = &answer.trim();
-                                println!("answer is : {}", yes_no);
-                                match &yes_no[..] {
-                                    "y" | "Y" => {
-                                        println!("passman will generate your password now.");
-                                        println!("How long do you want your password to be? (maximum of 128.");
-
-                                        std::io::stdin()
-                                            .read_line(&mut pw_length)
-                                            .expect("Failed to read line");
-
-                                        let pw_length_no: u32 = pw_length.trim().parse().expect("Please type a number!");
-                                        //TODO: ask for special chars
-                                        password_gen = make_pass(pw_length_no);
-                                        password = &password_gen;
-                                        println!("generated: {}", password);
-                                    }
-                                    "n" | "N" => {
-                                        print_help();
-                                    }
-                                    _ => {
-                                        print_help();
-                                    }
-                                }
-                            }
-                            //Todo: send create request to daemon
-                            println!("to demon: account:{};username:{};password:{};", acc, username, password);
                             let data = format!("b'ADD {}\nusername:{};password:{};'", acc, username, password);
                             println!("data: {:#?}", data);
-                            let mut writer = BufWriter::new(stream);
-                            writer.write(data.as_bytes()).expect("could not write");
+                            msg_daemon(data, stream);
                         }
                         _ => print_help()
                     }
@@ -119,12 +89,42 @@ fn main() {
     }
 }
 
+fn ask_for_pass() -> u32{
+    println!("passman will generate your password now.");
+    println!("How long do you want your password to be? (maximum of 128.");
+    let mut pw_length = String::new();
+
+    std::io::stdin()
+        .read_line(&mut pw_length)
+        .expect("Failed to read line");
+
+    let pw_length: u32 = pw_length.trim().parse().expect("Please type a number!");
+    pw_length
+}
+
+fn ask_for_username() -> String {
+    let mut input_username = String::new();
+
+    println!("Please enter the username you want to use:");
+    std::io::stdin()
+        .read_line(&mut input_username)
+        .expect("Failed to read line");
+
+    println!("your username is {}", input_username);
+    input_username
+}
+
+fn msg_daemon(data: String, stream: TcpStream) {
+    let mut writer = BufWriter::new(stream);
+    writer.write(data.as_bytes()).expect("could not write");
+}
+
+
 /// Returns a randomly generated password string
 ///
 /// #Arguments
 ///
 /// * `length` - The chosen lenght for the password choosen by the user.
-
 //TODO: Change arguments: uppercase: usize, lower: usize, digits: usize, specials: usize
 pub fn make_pass(length: u32) -> String {
     //TODO: make function that has 4 lists -> digits, uppercase lowercase, special chars !"§$%&...
@@ -145,6 +145,7 @@ pub fn make_pass(length: u32) -> String {
 
 fn print_help() {
     println!("Usage options: passman <option>");
+    println!();
     println!("help -> display this.");
     println!();
     println!("get <accountname> -> this will search the db for your username and passwort for the given account");
@@ -153,4 +154,29 @@ fn print_help() {
     println!();
     println!("new <accountname> <username> <password>(optional) -> this will create an account in the db with your given username");
     println!("if you leave the password field empty, we'll ask you for your preferred password choices and generate it randomly.");
+}
+
+fn yes_or_no() -> String{
+    println!("you have not entered a password. Should passman create it for you?");
+    let mut password_gen= String::from("");
+    let mut answer = String::new();
+    std::io::stdin()
+        .read_line(&mut answer)
+        .expect("Failed to read line");
+
+    let yes_no = answer.trim();
+    match &yes_no[..] {
+        "y" | "Y" => {
+            let len = ask_for_pass();
+            password_gen = make_pass(len);
+        }
+        "n" | "N" => {
+            print_help();
+        }
+        _ => {
+            print_help();
+        }
+    };
+    password_gen
+
 }
