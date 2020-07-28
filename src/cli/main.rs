@@ -2,7 +2,7 @@ mod clipboard;
 mod pass;
 
 use std::env;
-use std::io::{BufRead, BufReader, BufWriter, Write};
+use std::io::{BufRead, BufReader, BufWriter, Write, Read};
 use std::net::TcpListener;
 use std::net::TcpStream;
 
@@ -13,22 +13,48 @@ use rand::Rng;
 // passman get gmail
 // passman delete account
 // passman get google -u -> username
+extern crate clipboard as other_clip;
+
+use other_clip::ClipboardProvider;
+use other_clip::ClipboardContext;
+
+
+
 
 fn main() {
+
+    let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
+
+    let the_string = "Hello, world!";
+
+    ctx.set_contents(the_string.to_owned()).unwrap();
+
+    let mut abc = ctx.get_contents().unwrap();
+    println!("{}", abc);
+
+    let the_other_one = "Hello, World";
+    ctx.set_contents(the_other_one.to_owned()).unwrap();
+    let mut abc = ctx.get_contents().unwrap();
+
+    println!("{}", abc);
+
     println!("passman starting...");
     let args: Vec<String> = env::args().collect();
 
     match TcpStream::connect("localhost:7878") {
         Ok(mut stream) => {
             println!("connected to server");
-            let cmd = &args[1];
             let acc: &String;
+            let cmd;
+            if args.len() > 0{
+                cmd = &args[1];
+            }
             let password;
             let filename;
             let yes_no;
             let tmp;
             match args.len() {
-                1 => {
+                0 | 1 => {
                     print_help();
                     println!("debug 1");
                 }
@@ -84,6 +110,7 @@ fn main() {
                 }
                 // passman command accountname
                 3 | 4 | 5 => {
+                    let cmd = &args[1];
                     acc = &args[2];
                     match &cmd[..] {
                         "add" => {
@@ -151,6 +178,12 @@ fn main() {
     }
 }
 
+
+
+fn ask_for_userinput(option: String) {
+//...TODO
+}
+
 fn ask_for_pass() -> u32 {
     println!("passman will generate your password now.");
     println!("How long do you want your password to be? (maximum of 128.");
@@ -200,10 +233,15 @@ fn ask_for_username() -> String {
     input_username
 }
 
-fn msg_daemon(data: String, stream: TcpStream) {
-    let mut writer = BufWriter::new(stream);
+fn msg_daemon(data: String, mut stream: TcpStream) {
+    let mut writer = BufWriter::new(&stream);
     writer.write(data.as_bytes()).expect("could not write");
+    writer.flush().unwrap();
 
+    // let mut reader = BufReader::new(&stream);
+    // let mut response = String::new();
+    // reader.read_to_string(&mut response).expect("could not read");
+    // println!("Server received {:#?}", response);
 }
 
 /// Returns a randomly generated password string
