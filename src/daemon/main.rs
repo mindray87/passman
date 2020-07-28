@@ -1,5 +1,3 @@
-mod PasswordFile;
-
 use std::collections::HashMap;
 use std::fs;
 use std::fs::File;
@@ -15,11 +13,10 @@ use rand::RngCore;
 use rustc_serialize::base64;
 use rustc_serialize::base64::ToBase64;
 
+mod password_file;
+
 fn main() {
     let listener = TcpListener::bind("0.0.0.0:7878").unwrap();
-
-    let entries: HashMap<String, String> = HashMap::new();
-    let fileOpen = false;
 
     for stream in listener.incoming() {
         let stream = stream.unwrap();
@@ -58,15 +55,9 @@ fn handle_connection(mut stream: TcpStream) {
         _ => "BAD REQUEST",
     };
 
+    println!("Response: '{}'", response);
     stream.write(response.as_bytes()).unwrap();
     stream.flush().unwrap();
-}
-
-fn method_not_allowed<'a>() -> (&'a str, &'a str) {
-    (
-        "HTTP/1.1 405 Method Not Allowed\r\n\r\n",
-        "method_not_allowed",
-    )
 }
 
 fn add(message: &String) -> &'static str {
