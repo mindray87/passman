@@ -1,4 +1,6 @@
-use std::{env, fs};
+extern crate clipboard;
+
+use std::{env, fs, time};
 use std::borrow::{Borrow, BorrowMut};
 use std::convert::TryFrom;
 use std::error::Error;
@@ -7,10 +9,13 @@ use std::net::{Shutdown, TcpListener};
 use std::net::TcpStream;
 use std::ops::Add;
 use std::path::{Path, PathBuf};
+use std::thread;
 
 use password_file::PasswordFile;
 use std::io::BufReader;
 
+use clipboard::ClipboardContext;
+use clipboard::ClipboardProvider;
 mod password_file;
 
 type Result<T> = std::result::Result<T, String>;
@@ -127,10 +132,8 @@ fn get(password_file: &Option<PasswordFile>, message: &String) -> Result<String>
     let password_file = password_file.as_ref().ok_or("There is no password file open.".to_string())?;
     let vec_result: Vec<(String, String)> = password_file.get_entry(message.lines().nth(0).unwrap().replace("GET ", "").borrow())
         .or(Err(format!("ERR\nEntry not found.")))?;
-
     Ok(format!("OK\n{:?}", vec_result))
 }
-
 
 fn create(message: &String) -> Result<PasswordFile> {
     let mut filename = message.lines().nth(0).unwrap().replace("CREATE ", "");
@@ -176,6 +179,15 @@ fn open_password_file(filename: String) -> String {
     return contents;
 }
 
+fn create_clipboard(context: String) {
+    let clp_thread = thread::spawn(move || {
+        let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
+        ctx.set_contents(context.to_owned()).unwrap();
+        let thirty_sec = time::Duration::from_secs(30);
+        thread::sleep(thirty_sec);
+        ctx.set_contents("".to_string()).unwrap();
+    });
+}
 
 fn close_password_file() {}
 
