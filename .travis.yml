@@ -4,4 +4,5 @@ before_install:
   - sudo apt-get install -y libx11-xcb-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-xfixes0-dev
 
 script:
-  - ./run-tests.sh
+  - cargo test --verbose --all
+  - python3 -m unittest src/daemon/integration_test/test.py

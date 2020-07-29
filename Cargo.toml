@@ -12,9 +12,6 @@ path = "src/daemon/main.rs"
 name = "passman-cli"
 path = "src/cli/main.rs"
 
-[lib]
-name = "lib"
-path = "src/lib/crypto/lib.rs"
 
 [dependencies]
 copypasta = "0.7.0"
