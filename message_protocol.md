@@ -8,9 +8,7 @@
   ```
 - Add a new password entry:
   ```
-  ADD name
-  key:value;key:value;...
-  EOF
+  ADD name key:value;key:value;... \n
   ```
 - Delete a password entry:
   ```
