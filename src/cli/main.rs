@@ -1,47 +1,27 @@
-mod clipboard;
+//mod clipboard;
 mod pass;
-
-use std::env;
-use std::io::{BufRead, BufReader, BufWriter, Write, Read};
-use std::net::{TcpListener, Shutdown};
-use std::net::TcpStream;
-use std::thread;
+// extern crate clipboard;
+// use clipboard::ClipboardContext;
+// use clipboard::ClipboardProvider;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
+use std::env;
+use std::io::{BufRead, BufReader, BufWriter, Read, Write};
+use std::net::TcpStream;
+use std::net::{Shutdown, TcpListener};
 //terminal:
 // passman verb option
 // passman get gmail
 // passman delete account
 // passman get google -u -> username
-extern crate clipboard as other_clip;
 
-use other_clip::ClipboardProvider;
-use other_clip::ClipboardContext;
-use std::time::Duration;
-use std::str::from_utf8;
 use std::process::exit;
-
+use std::str::from_utf8;
+use std::time::Duration;
 
 fn main() {
-
-    let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
-
-    let the_string = "Hello, world!";
-
-    ctx.set_contents(the_string.to_owned()).unwrap();
-
-    let mut abc = ctx.get_contents().unwrap();
-    println!("{}", abc);
-
-    let the_other_one = "Hello, World";
-    ctx.set_contents(the_other_one.to_owned()).unwrap();
-    let mut abc = ctx.get_contents().unwrap();
-
-    println!("{}", abc);
-
     println!("passman starting...");
     let args: Vec<String> = env::args().collect();
-
 
     let acc: &String;
     let cmd;
@@ -67,7 +47,7 @@ fn main() {
                     let username = ask_for_username();
                     let password = yes_or_no();
                     let data = format!(
-                        b"ADD {}\nusername:{};password:{}",
+                        "ADD {}\nusername:{};password:{}",
                         &acc, &username, &password
                     );
                     msg_daemon(data);
@@ -98,89 +78,83 @@ fn main() {
                 "get" => {
                     let acc = ask_for_accountname();
 
-                            let data = format!("GET {}", &acc);
-                            msg_daemon(data);
-                        },
-                        "help" => {
-                            print_help();
-                        },
-                        _ => println!("b"),
-                    }
+                    let data = format!("GET {}", &acc);
+                    msg_daemon(data);
                 }
-                // passman command accountname
-                3 | 4 | 5 => {
-                    //open with param
-                    //close with param
-                    let cmd = &args[1];
-                    acc = &args[2];
-                    match &cmd[..] {
-                        "add" => {
-                            let username;
-                            if args.len() >= 3{
-                                username = &args[2];
-                            } else {
-                                tmp = ask_for_username();
-                                username = &tmp;
-                            }
-
-                            if args.len() >= 4 {
-                                password = &args[3]
-                            } else {
-                                yes_no = yes_or_no();
-                                password = &yes_no;
-                            }
-
-                            let data = format!(
-                                "ADD {}\nusername:{};password:{}",
-                                acc, username, password
-                            );
-                            println!("data for daemon: {}", data);
-                            msg_daemon(data);
-                        },
-                        "create" | "open" => {
-                            println!("args len create open 3: {}", args.len());
-                            if args.len() >= 3{
-                                filename = &args[2];
-                            } else {
-                                tmp = ask_for_filename();
-                                filename = &tmp;
-                            }
-                            if args.len() >= 4{
-                                password = &args[3];
-                            } else {
-                                yes_no = yes_or_no();
-                                password = &yes_no;
-                            }
-                            let data;
-                            if cmd == "create" {
-                                data = format!("CREATE {}\n{}", filename, password);
-                            } else {
-                                data = format!("OPEN {}\n{}", filename, password);
-                            }
-                            println!("data for daemon: {}", data);
-                            msg_daemon(data);
-                        }
-                        "delete" => {
-                            let data = format!("DELETE {}", acc);
-                            msg_daemon(data);
-                        },
-                        "get" => {
-                            let data = format!("GET {}", acc);
-                            let res = msg_daemon(data);
-                            create_clipboard(res);
-
-                        },
-                        _ => print_help()
-                    }
+                "help" => {
+                    print_help();
                 }
                 _ => print_help(),
             }
+        }
+        // passman command accountname
+        3 | 4 | 5 => {
+            //open with param
+            //close with param
+            let cmd = &args[1];
+            acc = &args[2];
+            match &cmd[..] {
+                "add" => {
+                    let username;
+                    if args.len() >= 4 {
+                        username = &args[3];
+                    } else {
+                        tmp = ask_for_username();
+                        username = &tmp;
+                    }
+
+                    if args.len() >= 5 {
+                        password = &args[4]
+                    } else {
+                        yes_no = yes_or_no();
+                        password = &yes_no;
+                    }
+
+                    let data = format!("ADD {}\nusername:{};password:{}", acc, username, password);
+                    println!("data for daemon: {}", data);
+                    msg_daemon(data);
+                }
+                "create" | "open" => {
+                    println!("args len create open 3: {}", args.len());
+                    if args.len() >= 3 {
+                        filename = &args[2];
+                    } else {
+                        tmp = ask_for_filename();
+                        filename = &tmp;
+                    }
+                    if args.len() >= 4 {
+                        password = &args[3];
+                    } else {
+                        yes_no = yes_or_no();
+                        password = &yes_no;
+                    }
+                    let data;
+                    if cmd == "create" {
+                        data = format!("CREATE {}\n{}", filename, password);
+                    } else {
+                        data = format!("OPEN {}\n{}", filename, password);
+                    }
+                    println!("data for daemon: {}", data);
+                    msg_daemon(data);
+                }
+                "delete" => {
+                    let data = format!("DELETE {}", acc);
+                    msg_daemon(data);
+                }
+                "get" => {
+                    let data = format!("GET {}", acc);
+                    //let res = msg_daemon(data);
+                    "Hallo Welt.".to_string();
+                }
+                _ => print_help(),
+            }
+        }
+        _ => print_help(),
+    }
 }
 
-
-
 fn ask_for_userinput(option: String) {
-//...TODO
+    //...TODO
 }
 
 fn ask_for_pass() -> u32 {
@@ -232,27 +206,26 @@ fn ask_for_username() -> String {
     input_username
 }
 
-fn create_clipboard(context: String) {
-    let clp_thread = thread::spawn(move || {
-        //ctx.set_contents(res.to_owned().unwrap());
-    });
-}
-
-fn msg_daemon(data: String) -> String{
+fn msg_daemon(data: String) -> String {
     let mut tcp_stream = TcpStream::connect("localhost:7878").expect("Failed to connect.");
-    println!("Successfully connected to server {}", tcp_stream.peer_addr().unwrap().to_string());
+    println!(
+        "Successfully connected to server {}",
+        tcp_stream.peer_addr().unwrap().to_string()
+    );
     tcp_stream.set_read_timeout(Some(Duration::new(3, 0)));
     tcp_stream.set_write_timeout(Some(Duration::new(3, 0)));
 
     let mut msg = data.as_bytes();
     tcp_stream.write_all(msg).unwrap();
-    tcp_stream.shutdown(Shutdown::Write).expect("Can not shutdown Write.");
+    tcp_stream
+        .shutdown(Shutdown::Write)
+        .expect("Can not shutdown Write.");
     println!("Sent '{}', awaiting reply...", data);
 
     let mut buffer = BufReader::new(tcp_stream);
     let mut s = String::new();
 
-    let response = match buffer.read_line(&mut s){
+    let response = match buffer.read_line(&mut s) {
         Ok(_) => {
             println!("Got reply: {}", s);
             s.to_string()
@@ -298,7 +271,9 @@ fn print_help() {
     println!();
     println!("create <filename> -> creates an encrypted file, with your accounts and passwords in the <filename> file");
     println!();
-    println!("open <filename> -> opens the file <filename> with your stored accounts and passwords");
+    println!(
+        "open <filename> -> opens the file <filename> with your stored accounts and passwords"
+    );
     println!();
     println ! ("get <accountname> -> this will search the db for your username and passwort for the given account and copy the password to your clipboard");
     println!();
