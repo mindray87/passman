@@ -19,6 +19,7 @@ use other_clip::ClipboardProvider;
 use other_clip::ClipboardContext;
 use std::time::Duration;
 use std::str::from_utf8;
+use std::process::exit;
 
 
 fn main() {
@@ -66,7 +67,7 @@ fn main() {
                     let username = ask_for_username();
                     let password = yes_or_no();
                     let data = format!(
-                        "ADD {}\nusername:{};password:{};",
+                        b"ADD {}\nusername:{};password:{}",
                         &acc, &username, &password
                     );
                     msg_daemon(data);
@@ -82,7 +83,7 @@ fn main() {
                     //password = &yes_no;
                     let data;
                     if cmd == "create" {
-                        data = format!("CREATE {}\n{};", &filename, &password);
+                        data = format!("CREATE {}\n{}", &filename, &password);
                     } else {
                         data = format!("OPEN {}\n{}", &filename, &password);
                     }
@@ -130,21 +131,22 @@ fn main() {
                             }
 
                             let data = format!(
-                                "ADD {}\nusername:{};password:{};",
+                                "ADD {}\nusername:{};password:{}",
                                 acc, username, password
                             );
                             println!("data for daemon: {}", data);
                             msg_daemon(data);
                         },
                         "create" | "open" => {
-                            if args.len() > 3{
-                                filename = &args[3];
+                            println!("args len create open 3: {}", args.len());
+                            if args.len() >= 3{
+                                filename = &args[2];
                             } else {
                                 tmp = ask_for_filename();
                                 filename = &tmp;
                             }
-                            if args.len() > 4{
-                                password = &args[4];
+                            if args.len() >= 4{
+                                password = &args[3];
                             } else {
                                 yes_no = yes_or_no();
                                 password = &yes_no;
@@ -159,11 +161,11 @@ fn main() {
                             msg_daemon(data);
                         }
                         "delete" => {
-                            let data = format!("DELETE {}'", acc);
+                            let data = format!("DELETE {}", acc);
                             msg_daemon(data);
                         },
                         "get" => {
-                            let data = format!("GET {}'", acc);
+                            let data = format!("GET {}", acc);
                             let res = msg_daemon(data);
                             create_clipboard(res);
 
@@ -244,6 +246,7 @@ fn msg_daemon(data: String) -> String{
 
     let mut msg = data.as_bytes();
     tcp_stream.write_all(msg).unwrap();
+    tcp_stream.shutdown(Shutdown::Write).expect("Can not shutdown Write.");
     println!("Sent '{}', awaiting reply...", data);
 
     let mut buffer = BufReader::new(tcp_stream);
@@ -306,7 +309,7 @@ fn print_help() {
 }
 
 fn yes_or_no() -> String {
-    println!("you have not entered a password. Should passman create it for you?");
+    println!("you have not entered a password. Should passman create it for you? (y / n)");
     let mut password_gen = String::from("");
     let mut answer = String::new();
     std::io::stdin()
@@ -320,6 +323,16 @@ fn yes_or_no() -> String {
             password_gen = make_pass(len);
         }
         "n" | "N" => {
+            println!("Please enter your costum password now: ");
+            let mut answer = String::new();
+            std::io::stdin()
+                .read_line(&mut answer)
+                .expect("Failed to read line");
+            password_gen = answer.trim().to_owned();
+            if password_gen.len() <= 3 {
+                println!("min passwordlength is 4");
+                exit(1);
+            }
             print_help();
         }
         _ => {
