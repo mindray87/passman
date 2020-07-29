@@ -32,7 +32,6 @@ fn main() {
         let mut buf_reader = BufReader::new(&stream);
         let mut buffer = String::new();
 
-        let mut data = [0 as u8; 50];
         buf_reader.read_to_string(&mut buffer).unwrap();
 
         println!("Message: '{}'", buffer);
