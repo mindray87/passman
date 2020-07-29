@@ -120,12 +120,10 @@ fn get(password_file: &Option<PasswordFile>, message: &String) -> Result<String>
 
 fn create(message: &String) -> Result<PasswordFile> {
     let mut filename = message.lines().nth(0).unwrap().replace("CREATE ", "");
-    let path = env::var_os("HOME")
-        .map(PathBuf::from)
-        .map(|x| x.join(&filename))
-        .unwrap();
+    let path = env::var_os("HOME").unwrap();
 
-    let path = path.as_path().with_extension(".pass");
+    fs::create_dir(&path);
+    let path = PathBuf::from(path).join(".passman").join(&filename).as_path().with_extension("pass");
 
     match path.to_str() {
         Some(s) => Ok(password_file::PasswordFile::new(s)),
@@ -174,13 +172,4 @@ mod tests {
         let filename = String::from("this file does not exist");
         assert!(open_password_file(filename).starts_with("Something went wrong reading the file"));
     }
-
-    // #[test]
-    // fn create_password_file() {
-    //     let filename = String::from("my_test_password_file");
-    //     let cont = create_and_open_password_file(&filename);
-    //     println!("content: {}", cont);
-    //     fs::remove_file(filename.add(".pass")).unwrap();
-    //     assert!(cont.starts_with("PASSMAN"));
-    // }
 }
