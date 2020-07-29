@@ -3,16 +3,39 @@ use std::borrow::{Borrow, BorrowMut};
 use std::convert::TryFrom;
 use std::error::Error;
 use std::io::prelude::*;
-use std::net::TcpListener;
+use std::net::{Shutdown, TcpListener};
 use std::net::TcpStream;
 use std::ops::Add;
 use std::path::{Path, PathBuf};
 
 use password_file::PasswordFile;
+use std::io::BufReader;
 
 mod password_file;
 
 type Result<T> = std::result::Result<T, String>;
+
+// fn main() {
+//     let listener = TcpListener::bind("0.0.0.0:7878").unwrap();
+//     // accept connections and process them, spawning a new thread for each one
+//     println!("Server listening on port 3333");
+//     for stream in listener.incoming() {
+//         match stream {
+//             Ok(stream) => {
+//                 println!("New connection: {}", stream.peer_addr().unwrap());
+//                 // connection succeeded
+//                 handle_client(stream)
+//             }
+//             Err(e) => {
+//                 println!("Error: {}", e);
+//                 /* connection failed */
+//             }
+//         }
+//     }
+//     // close the socket server
+//     println!("Drop");
+//     drop(listener);
+// }
 
 fn main() {
     let listener = match TcpListener::bind("0.0.0.0:7878") {
@@ -25,16 +48,14 @@ fn main() {
     let mut password_file: Option<PasswordFile> = None;
 
     for stream in listener.incoming() {
-        let mut stream = stream.unwrap();
-        let ip_address = stream.local_addr().expect("Could not read address").ip();
-        if !ip_address.is_loopback() {
-            refuse_connection(stream, ip_address.to_string());
-            continue;
-        }
+        let mut stream = stream.expect("Stream error!");
 
-        // handle_connection(stream);
-        let mut buffer = String::new();
-        stream.read_to_string(&mut buffer).unwrap();
+        let mut buffer = BufReader::new(&stream);
+        let mut s = String::new();
+
+        buffer.read_line(&mut s).unwrap();
+
+        let buffer: String = s;
 
         let response: Result<String> = match buffer
             .split(" ")
@@ -89,6 +110,7 @@ fn add(password_file: Option<&mut PasswordFile>, message: &String) -> Result<Str
         Some(s) => s,
         None => return Err("BAD RESPIONSE ".to_string())
     };
+    // Todo: Check message format
     let vec: Vec<(String, String)> = key_values.split(";").map(|kv| {
         let a: Vec<&str> = kv.split(":").collect();
         (a[0].to_string(), a[1].to_string())
