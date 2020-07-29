@@ -5,7 +5,7 @@ use std::env;
 use std::io::{BufRead, BufReader, BufWriter, Write, Read};
 use std::net::TcpListener;
 use std::net::TcpStream;
-
+use std::thread;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 //terminal:
@@ -46,7 +46,7 @@ fn main() {
             println!("connected to server");
             let acc: &String;
             let cmd;
-            if args.len() > 0{
+            if args.len() > 1{
                 cmd = &args[1];
             }
             let password;
@@ -164,7 +164,9 @@ fn main() {
                         },
                         "get" => {
                             let data = format!("b'GET {}'", acc);
-                            msg_daemon(data,stream);
+                            let res = msg_daemon(data,stream);
+                            create_clipboard(res);
+
                         },
                         _ => print_help()
                     }
@@ -233,15 +235,22 @@ fn ask_for_username() -> String {
     input_username
 }
 
-fn msg_daemon(data: String, mut stream: TcpStream) {
+fn create_clipboard(context: String) {
+    let clp_thread = thread::spawn(move || {
+        ctx.set_contents(res.to_owned().unwrap());
+    });
+}
+
+fn msg_daemon(data: String, mut stream: TcpStream) -> String{
     let mut writer = BufWriter::new(&stream);
     writer.write(data.as_bytes()).expect("could not write");
     writer.flush().unwrap();
 
-    // let mut reader = BufReader::new(&stream);
-    // let mut response = String::new();
-    // reader.read_to_string(&mut response).expect("could not read");
-    // println!("Server received {:#?}", response);
+    let mut reader = BufReader::new(&stream);
+    let mut response = String::new();
+    reader.read_to_string(&mut response).expect("could not read");
+    println!("Server received {:#?}", response);
+    response
 }
 
 /// Returns a randomly generated password string
