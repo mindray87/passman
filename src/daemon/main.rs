@@ -1,5 +1,4 @@
 extern crate clipboard;
-
 use std::{env, fs, time};
 use std::borrow::{Borrow, BorrowMut};
 use std::convert::TryFrom;
@@ -185,7 +184,10 @@ fn create_clipboard(context: String) {
         ctx.set_contents(context.to_owned()).unwrap();
         let thirty_sec = time::Duration::from_secs(30);
         thread::sleep(thirty_sec);
-        ctx.set_contents("".to_string()).unwrap();
+        let content_after = ctx.get_contents().unwrap();
+        if context == content_after {
+            ctx.set_contents("".to_string()).unwrap();
+        }
     });
 }
 

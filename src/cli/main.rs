@@ -1,6 +1,8 @@
-mod clipboard;
+//mod clipboard;
 mod pass;
-
+// extern crate clipboard;
+// use clipboard::ClipboardContext;
+// use clipboard::ClipboardProvider;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 use std::env;
