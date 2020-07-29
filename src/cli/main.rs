@@ -67,7 +67,7 @@ fn main() {
                     let username = ask_for_username();
                     let password = yes_or_no();
                     let data = format!(
-                        b"ADD {}\nusername:{};password:{}",
+                        "ADD {}\nusername:{};password:{}",
                         &acc, &username, &password
                     );
                     msg_daemon(data);
@@ -104,7 +104,7 @@ fn main() {
                         "help" => {
                             print_help();
                         },
-                        _ => println!("b"),
+                        _ => print_help(),
                     }
                 }
                 // passman command accountname
@@ -116,19 +116,20 @@ fn main() {
                     match &cmd[..] {
                         "add" => {
                             let username;
-                            if args.len() >= 3{
-                                username = &args[2];
+                            if args.len() >= 4{
+                                username = &args[3];
                             } else {
                                 tmp = ask_for_username();
                                 username = &tmp;
                             }
 
-                            if args.len() >= 4 {
-                                password = &args[3]
+                            if args.len() >= 5 {
+                                password = &args[4]
                             } else {
                                 yes_no = yes_or_no();
                                 password = &yes_no;
                             }
+
 
                             let data = format!(
                                 "ADD {}\nusername:{};password:{}",
