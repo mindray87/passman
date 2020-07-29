@@ -1,16 +1,14 @@
 use std::{env, fs};
-use std::borrow::{Borrow, BorrowMut};
-use std::convert::TryFrom;
-use std::error::Error;
+use std::borrow::Borrow;
+use std::io::BufReader;
 use std::io::prelude::*;
-use std::net::{Shutdown, TcpListener};
+use std::net::TcpListener;
 use std::net::TcpStream;
-use std::ops::Add;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
+
+use regex::Regex;
 
 use password_file::PasswordFile;
-use std::io::BufReader;
-use regex::Regex;
 
 mod password_file;
 
@@ -28,6 +26,8 @@ fn main() {
 
     for stream in listener.incoming() {
         let mut stream = stream.expect("Stream error!");
+
+        if stream.local_addr().unwrap().ip().is_loopback() { refuse_connection(&mut stream) }
 
         let mut buf_reader = BufReader::new(&stream);
         let mut buffer = String::new();
@@ -75,16 +75,14 @@ fn main() {
     }
 }
 
-fn refuse_connection(mut stream: TcpStream, ip_address: String) {
-    stream
-        .write(format!("IP-Address {} ist not accepted!", ip_address).as_bytes())
-        .unwrap();
+fn refuse_connection(stream: &mut TcpStream) {
+    stream.write(format!("IP-Address ist not accepted!").as_bytes()).unwrap();
     stream.flush().unwrap();
 }
 
 fn add(password_file: Option<&mut PasswordFile>, message: &String) -> Result<String> {
-    let mut password_file = password_file.ok_or("There is no password file open.".to_string())?;
-    if message.lines().count() < 2 {return Err("BAD REQUEST".to_string())}
+    let password_file = password_file.ok_or("There is no password file open.".to_string())?;
+    if message.lines().count() < 2 { return Err("BAD REQUEST".to_string()); }
     let name = message.lines().nth(0).unwrap().replace("ADD ", "");
     let key_values = match message.split("\n").nth(1) {
         Some(s) => s,
@@ -118,10 +116,12 @@ fn get(password_file: &Option<PasswordFile>, message: &String) -> Result<String>
 
 
 fn create(message: &String) -> Result<PasswordFile> {
-    let mut filename = message.lines().nth(0).unwrap().replace("CREATE ", "");
+    let filename = message.lines().nth(0).unwrap().replace("CREATE ", "");
     let path = env::var_os("HOME").unwrap();
 
-    fs::create_dir(&path);
+    if fs::read_dir(&path).is_err() {
+        fs::create_dir(&path).unwrap();
+    }
     let path = PathBuf::from(path).join(".passman").join(&filename).as_path().with_extension("pass");
 
     match path.to_str() {
@@ -131,7 +131,7 @@ fn create(message: &String) -> Result<PasswordFile> {
 }
 
 fn open(message: &String) -> Result<PasswordFile> {
-    let mut filename = message.lines().nth(0).unwrap().replace("OPEN ", "");
+    let filename = message.lines().nth(0).unwrap().replace("OPEN ", "");
     let path = env::var_os("HOME")
         .map(PathBuf::from)
         .map(|x| x.join(&filename))
@@ -143,32 +143,14 @@ fn open(message: &String) -> Result<PasswordFile> {
         Some(s) => password_file::PasswordFile::new(s),
         None => return Err("There is something wrong with the path!".to_string())
     };
-    PasswordFile::open(&mut password_file).map(|e| password_file).map_err(|e| "Open failed".to_string())
+    PasswordFile::open(&mut password_file).map(|_| password_file).map_err(|_| "Open failed".to_string())
 }
 
 fn close(message: &String) -> Result<String> {
     Err("NOT IMPLEMENTED")?
 }
 
-fn open_password_file(filename: String) -> String {
-    let contents = match fs::read_to_string(filename) {
-        Ok(s) => s,
-        Err(e) => return format!("Something went wrong reading the file!\n{}", e),
-    };
-
-    return contents;
-}
-
-
 fn close_password_file() {}
 
 #[cfg(test)]
-mod tests {
-    use crate::open_password_file;
-
-    #[test]
-    fn open_password_file_fails() {
-        let filename = String::from("this file does not exist");
-        assert!(open_password_file(filename).starts_with("Something went wrong reading the file"));
-    }
-}
+mod tests {}
