@@ -71,7 +71,7 @@ fn main() {
 
         println!("Response: '{:#?}'", response);
         stream.write(format!("{}", response.map_or_else(|s| s, |e| e)).as_bytes()).unwrap();
-        stream.flush().unwrap();
+        //stream.flush().unwrap();
     }
 }
 

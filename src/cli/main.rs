@@ -41,66 +41,64 @@ fn main() {
     println!("passman starting...");
     let args: Vec<String> = env::args().collect();
 
-    match TcpStream::connect("localhost:7878") {
-        Ok(mut stream) => {
-            println!("connected to server");
-            let acc: &String;
-            let cmd;
-            if args.len() > 1{
-                cmd = &args[1];
-            }
-            let password;
-            let filename;
-            let yes_no;
-            let tmp;
-            match args.len() {
-                0 | 1 => {
-                    print_help();
-                    println!("debug 1");
+
+    let acc: &String;
+    let cmd;
+    if args.len() > 1 {
+        cmd = &args[1];
+    }
+    let password;
+    let filename;
+    let yes_no;
+    let tmp;
+    match args.len() {
+        0 | 1 => {
+            print_help();
+            println!("debug 1");
+        }
+        2 => {
+            println!("debug 2");
+            let cmd = &args[1];
+            match &cmd[..] {
+                "add" => {
+                    println!("debug 4 add");
+                    let acc = ask_for_accountname();
+                    let username = ask_for_username();
+                    let password = yes_or_no();
+                    let data = format!(
+                        "ADD {}\nusername:{};password:{};",
+                        &acc, &username, &password
+                    );
+                    msg_daemon(data);
                 }
-                2 => {
-                    println!("debug 2");
-                    let cmd = &args[1];
-                    match &cmd[..] {
-                        "add" => {
-                            println!("debug 4 add");
-                            let acc = ask_for_accountname();
-                            let username = ask_for_username();
-                            let password = yes_or_no();
-                            let data = format!(
-                                "ADD {}\nusername:{};password:{};",
-                                &acc, &username, &password
-                            );
-                            msg_daemon(data, stream);
-                        },
-                        "close" => {
-                            let data = format!("b'CLOSE\n'");
-                            msg_daemon(data, stream);
-                        }
-                        "create" | "open" => {
-                            println!("debug 3 create open");
-                            let filename = ask_for_filename();
-                            let password = yes_or_no();
-                            //password = &yes_no;
-                            let data;
-                            if cmd == "create" {
-                                data = format!("CREATE {}\n{};", &filename, &password);
-                            } else {
-                                data = format!("OPEN {}\n{}", &filename, &password);
-                            }
-                            println!("data for daemon: {}", data);
-                            msg_daemon(data, stream);
-                        },
-                        "delete" => {
-                            let acc = ask_for_accountname();
-                            let data = format!("DELETE {}", &acc);
-                            msg_daemon(data, stream);
-                        }
-                        "get" => {
-                            let acc = ask_for_accountname();
+                "close" => {
+                    let data = format!("CLOSE\n'");
+                    msg_daemon(data);
+                }
+                "create" | "open" => {
+                    println!("debug 3 create open");
+                    let filename = ask_for_filename();
+                    let password = yes_or_no();
+                    //password = &yes_no;
+                    let data;
+                    if cmd == "create" {
+                        data = format!("CREATE {}\n{};", &filename, &password);
+                    } else {
+                        data = format!("OPEN {}\n{}", &filename, &password);
+                    }
+                    println!("data for daemon: {}", data);
+                    msg_daemon(data);
+                }
+                "delete" => {
+                    let acc = ask_for_accountname();
+                    let data = format!("DELETE {}", &acc);
+                    msg_daemon(data);
+                }
+                "get" => {
+                    let acc = ask_for_accountname();
 
                             let data = format!("GET {}", &acc);
-                            msg_daemon(data, stream);
+                            msg_daemon(data);
                         },
                         "help" => {
                             print_help();
@@ -117,15 +115,15 @@ fn main() {
                     match &cmd[..] {
                         "add" => {
                             let username;
-                            if args.len() > 3{
-                                username = &args[3];
+                            if args.len() >= 3{
+                                username = &args[2];
                             } else {
                                 tmp = ask_for_username();
                                 username = &tmp;
                             }
 
-                            if args.len() > 4 {
-                                password = &args[4]
+                            if args.len() >= 4 {
+                                password = &args[3]
                             } else {
                                 yes_no = yes_or_no();
                                 password = &yes_no;
@@ -136,7 +134,7 @@ fn main() {
                                 acc, username, password
                             );
                             println!("data for daemon: {}", data);
-                            msg_daemon(data, stream);
+                            msg_daemon(data);
                         },
                         "create" | "open" => {
                             if args.len() > 3{
@@ -158,15 +156,15 @@ fn main() {
                                 data = format!("OPEN {}\n{}", filename, password);
                             }
                             println!("data for daemon: {}", data);
-                            msg_daemon(data, stream);
+                            msg_daemon(data);
                         }
                         "delete" => {
-                            let data = format!("b'DELETE {}'", acc);
-                            msg_daemon(data, stream);
+                            let data = format!("DELETE {}'", acc);
+                            msg_daemon(data);
                         },
                         "get" => {
-                            let data = format!("b'GET {}'", acc);
-                            let res = msg_daemon(data,stream);
+                            let data = format!("GET {}'", acc);
+                            let res = msg_daemon(data);
                             create_clipboard(res);
 
                         },
@@ -175,11 +173,6 @@ fn main() {
                 }
                 _ => print_help(),
             }
-        }
-        Err(e) => {
-            println!("Failed to connect: {}", e);
-        }
-    }
 }
 
 
@@ -239,20 +232,14 @@ fn ask_for_username() -> String {
 
 fn create_clipboard(context: String) {
     let clp_thread = thread::spawn(move || {
-        //ctx.set_contents(res.to_owned().unwrap());
+        ctx.set_contents(res.to_owned().unwrap());
     });
 }
 
-fn msg_daemon(data: String, mut stream: TcpStream) -> String{
-    let mut writer = BufWriter::new(&stream);
-    writer.write(data.as_bytes()).expect("could not write");
-    writer.flush().unwrap();
+fn msg_daemon(data: String) -> String{
 
-    let mut reader = BufReader::new(&stream);
-    let mut response = String::new();
-    reader.read_to_string(&mut response).expect("could not read");
-    println!("Server received {:#?}", response);
-    response
+
+
 }
 
 /// Returns a randomly generated password string
@@ -268,8 +255,8 @@ fn make_pass(length: u32) -> String {
     let lower = (b'a'..=b'z').map(|c| c as char).collect::<Vec<_>>();
     let digits = vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     let special = vec![
-        b',', b'.', b'_', b'-', b'!', b'$', b'&', b'/', b'(', b')', b'=', b'?', b'#', b'*', b'+',
-        b'<', b'>', b'%', b'(', b')',
+        ,', .', _', -', !', $', &', /', (', )', =', ?', #', *', +',
+        <', >', %', (', )',
     ];
     let length = length as usize;
     let id = rand::thread_rng()
