@@ -244,6 +244,7 @@ fn msg_daemon(data: String) -> String{
 
     let mut msg = data.as_bytes();
     tcp_stream.write_all(msg).unwrap();
+    tcp_stream.shutdown(Shutdown::Write);
     println!("Sent '{}', awaiting reply...", data);
 
     let mut buffer = BufReader::new(tcp_stream);

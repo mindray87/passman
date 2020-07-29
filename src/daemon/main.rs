@@ -10,32 +10,11 @@ use std::path::{Path, PathBuf};
 
 use password_file::PasswordFile;
 use std::io::BufReader;
+use regex::Regex;
 
 mod password_file;
 
 type Result<T> = std::result::Result<T, String>;
-
-// fn main() {
-//     let listener = TcpListener::bind("0.0.0.0:7878").unwrap();
-//     // accept connections and process them, spawning a new thread for each one
-//     println!("Server listening on port 3333");
-//     for stream in listener.incoming() {
-//         match stream {
-//             Ok(stream) => {
-//                 println!("New connection: {}", stream.peer_addr().unwrap());
-//                 // connection succeeded
-//                 handle_client(stream)
-//             }
-//             Err(e) => {
-//                 println!("Error: {}", e);
-//                 /* connection failed */
-//             }
-//         }
-//     }
-//     // close the socket server
-//     println!("Drop");
-//     drop(listener);
-// }
 
 fn main() {
     let listener = match TcpListener::bind("0.0.0.0:7878") {
@@ -50,12 +29,13 @@ fn main() {
     for stream in listener.incoming() {
         let mut stream = stream.expect("Stream error!");
 
-        let mut buffer = BufReader::new(&stream);
-        let mut s = String::new();
+        let mut buf_reader = BufReader::new(&stream);
+        let mut buffer = String::new();
 
-        buffer.read_line(&mut s).unwrap();
+        let mut data = [0 as u8; 50];
+        buf_reader.read_to_string(&mut buffer).unwrap();
 
-        let buffer: String = s;
+        println!("Message: '{}'", buffer);
 
         let response: Result<String> = match buffer
             .split(" ")
@@ -105,12 +85,18 @@ fn refuse_connection(mut stream: TcpStream, ip_address: String) {
 
 fn add(password_file: Option<&mut PasswordFile>, message: &String) -> Result<String> {
     let mut password_file = password_file.ok_or("There is no password file open.".to_string())?;
+    if message.lines().count() < 2 {return Err("BAD REQUEST".to_string())}
     let name = message.lines().nth(0).unwrap().replace("ADD ", "");
     let key_values = match message.split("\n").nth(1) {
         Some(s) => s,
-        None => return Err("BAD RESPIONSE ".to_string())
+        None => return Err("BAD REQUEST ".to_string())
     };
-    // Todo: Check message format
+
+    let re = Regex::new(r"^((([^;\n:]+:[^;\n:]+);)*([^;\n:]+:[^\n;:]+))\n*$").unwrap();
+    if !key_values.is_empty() && !re.is_match(key_values) {
+        return Result::Err("Content is not proper formatted!".to_string());
+    }
+
     let vec: Vec<(String, String)> = key_values.split(";").map(|kv| {
         let a: Vec<&str> = kv.split(":").collect();
         (a[0].to_string(), a[1].to_string())
