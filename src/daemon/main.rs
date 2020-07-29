@@ -9,6 +9,7 @@ use std::ops::Add;
 use std::path::{Path, PathBuf};
 
 use password_file::PasswordFile;
+use std::io::BufReader;
 
 mod password_file;
 
@@ -49,10 +50,12 @@ fn main() {
     for stream in listener.incoming() {
         let mut stream = stream.expect("Stream error!");
 
-        let mut data = [0 as u8; 512]; // using 50 byte buffer
-        stream.read(&mut data).expect("Reading failed!");
+        let mut buffer = BufReader::new(&stream);
+        let mut s = String::new();
 
-        let buffer: String = String::from_utf8(data.to_vec()).unwrap();
+        buffer.read_line(&mut s).unwrap();
+
+        let buffer: String = s;
 
         let response: Result<String> = match buffer
             .split(" ")
@@ -107,6 +110,7 @@ fn add(password_file: Option<&mut PasswordFile>, message: &String) -> Result<Str
         Some(s) => s,
         None => return Err("BAD RESPIONSE ".to_string())
     };
+    // Todo: Check message format
     let vec: Vec<(String, String)> = key_values.split(";").map(|kv| {
         let a: Vec<&str> = kv.split(":").collect();
         (a[0].to_string(), a[1].to_string())
