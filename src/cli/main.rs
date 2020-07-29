@@ -3,7 +3,7 @@ mod pass;
 
 use std::env;
 use std::io::{BufRead, BufReader, BufWriter, Write, Read};
-use std::net::TcpListener;
+use std::net::{TcpListener, Shutdown};
 use std::net::TcpStream;
 use std::thread;
 use rand::distributions::Alphanumeric;
@@ -232,7 +232,7 @@ fn ask_for_username() -> String {
 
 fn create_clipboard(context: String) {
     let clp_thread = thread::spawn(move || {
-        ctx.set_contents(res.to_owned().unwrap());
+        //ctx.set_contents(res.to_owned().unwrap());
     });
 }
 
@@ -242,22 +242,24 @@ fn msg_daemon(data: String) -> String{
     tcp_stream.set_read_timeout(Some(Duration::new(3, 0)));
     tcp_stream.set_write_timeout(Some(Duration::new(3, 0)));
 
-    let msg = data.as_bytes();
-    tcp_stream.write(msg).unwrap();
+    let mut msg = data.as_bytes();
+    tcp_stream.write_all(msg).unwrap();
     println!("Sent '{}', awaiting reply...", data);
 
-    let mut data = [0 as u8; 6]; // using 6 byte buffer
-    match tcp_stream.read(&mut data) {
+    let mut buffer = BufReader::new(tcp_stream);
+    let mut s = String::new();
+
+    let response = match buffer.read_line(&mut s){
         Ok(_) => {
-            let text = from_utf8(&data).unwrap();
-            println!("Unexpected reply: {}", text);
-            text.to_string()
+            println!("Got reply: {}", s);
+            s.to_string()
         }
         Err(e) => {
             println!("Failed to receive data: {}", e);
             e.to_string()
         }
-    }
+    };
+    response
 }
 
 /// Returns a randomly generated password string
@@ -271,11 +273,11 @@ fn make_pass(length: u32) -> String {
     // concatenate lists as needed and than generate pass -> check afterwards
     let upper = (b'A'..=b'Z').map(|c| c as char).collect::<Vec<_>>();
     let lower = (b'a'..=b'z').map(|c| c as char).collect::<Vec<_>>();
-    let digits = vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-    let special = vec![
-        ,', .', _', -', !', $', &', /', (', )', =', ?', #', *', +',
-        <', >', %', (', )',
-    ];
+    // let digits = vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    // let special = vec![
+    //     ,b', .', _', -', !', $', &', /', (', )', =', ?', #', *', +',
+    //     <', >', %', (', )',
+    // ];
     let length = length as usize;
     let id = rand::thread_rng()
         .sample_iter(&Alphanumeric)

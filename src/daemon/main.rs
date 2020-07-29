@@ -3,7 +3,7 @@ use std::borrow::{Borrow, BorrowMut};
 use std::convert::TryFrom;
 use std::error::Error;
 use std::io::prelude::*;
-use std::net::TcpListener;
+use std::net::{Shutdown, TcpListener};
 use std::net::TcpStream;
 use std::ops::Add;
 use std::path::{Path, PathBuf};
@@ -13,6 +13,28 @@ use password_file::PasswordFile;
 mod password_file;
 
 type Result<T> = std::result::Result<T, String>;
+
+// fn main() {
+//     let listener = TcpListener::bind("0.0.0.0:7878").unwrap();
+//     // accept connections and process them, spawning a new thread for each one
+//     println!("Server listening on port 3333");
+//     for stream in listener.incoming() {
+//         match stream {
+//             Ok(stream) => {
+//                 println!("New connection: {}", stream.peer_addr().unwrap());
+//                 // connection succeeded
+//                 handle_client(stream)
+//             }
+//             Err(e) => {
+//                 println!("Error: {}", e);
+//                 /* connection failed */
+//             }
+//         }
+//     }
+//     // close the socket server
+//     println!("Drop");
+//     drop(listener);
+// }
 
 fn main() {
     let listener = match TcpListener::bind("0.0.0.0:7878") {
@@ -25,16 +47,12 @@ fn main() {
     let mut password_file: Option<PasswordFile> = None;
 
     for stream in listener.incoming() {
-        let mut stream = stream.unwrap();
-        let ip_address = stream.local_addr().expect("Could not read address").ip();
-        if !ip_address.is_loopback() {
-            refuse_connection(stream, ip_address.to_string());
-            continue;
-        }
+        let mut stream = stream.expect("Stream error!");
 
-        // handle_connection(stream);
-        let mut buffer = String::new();
-        stream.read_to_string(&mut buffer).unwrap();
+        let mut data = [0 as u8; 512]; // using 50 byte buffer
+        stream.read(&mut data).expect("Reading failed!");
+
+        let buffer: String = String::from_utf8(data.to_vec()).unwrap();
 
         let response: Result<String> = match buffer
             .split(" ")
