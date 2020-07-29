@@ -68,7 +68,7 @@ fn main() {
                             let username = ask_for_username();
                             let password = yes_or_no();
                             let data = format!(
-                                "b'ADD {}\nusername:{};password:{};",
+                                "ADD {}\nusername:{};password:{};",
                                 &acc, &username, &password
                             );
                             msg_daemon(data, stream);
@@ -84,22 +84,22 @@ fn main() {
                             //password = &yes_no;
                             let data;
                             if cmd == "create" {
-                                data = format!("b'CREATE {}\n{};'", &filename, &password);
+                                data = format!("CREATE {}\n{};", &filename, &password);
                             } else {
-                                data = format!("b'OPEN {}\n{};'", &filename, &password);
+                                data = format!("OPEN {}\n{}", &filename, &password);
                             }
                             println!("data for daemon: {}", data);
                             msg_daemon(data, stream);
                         },
                         "delete" => {
                             let acc = ask_for_accountname();
-                            let data = format!("b'DELETE {}'", &acc);
+                            let data = format!("DELETE {}", &acc);
                             msg_daemon(data, stream);
                         }
                         "get" => {
                             let acc = ask_for_accountname();
 
-                            let data = format!("b'GET {}'", &acc);
+                            let data = format!("GET {}", &acc);
                             msg_daemon(data, stream);
                         },
                         "help" => {
@@ -110,6 +110,8 @@ fn main() {
                 }
                 // passman command accountname
                 3 | 4 | 5 => {
+                    //open with param
+                    //close with param
                     let cmd = &args[1];
                     acc = &args[2];
                     match &cmd[..] {
@@ -130,7 +132,7 @@ fn main() {
                             }
 
                             let data = format!(
-                                "b'ADD {}\nusername:{};password:{};",
+                                "ADD {}\nusername:{};password:{};",
                                 acc, username, password
                             );
                             println!("data for daemon: {}", data);
@@ -151,9 +153,9 @@ fn main() {
                             }
                             let data;
                             if cmd == "create" {
-                                data = format!("b'CREATE {}\n{};'", filename, password);
+                                data = format!("CREATE {}\n{}", filename, password);
                             } else {
-                                data = format!("b'OPEN {}\n{};'", filename, password);
+                                data = format!("OPEN {}\n{}", filename, password);
                             }
                             println!("data for daemon: {}", data);
                             msg_daemon(data, stream);
@@ -237,7 +239,7 @@ fn ask_for_username() -> String {
 
 fn create_clipboard(context: String) {
     let clp_thread = thread::spawn(move || {
-        ctx.set_contents(res.to_owned().unwrap());
+        //ctx.set_contents(res.to_owned().unwrap());
     });
 }
 
