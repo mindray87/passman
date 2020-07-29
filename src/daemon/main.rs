@@ -1,8 +1,9 @@
-use std::{env, fs};
+extern crate clipboard;
+use std::{env, fs, time};
 use std::borrow::Borrow;
 use std::io::BufReader;
 use std::io::prelude::*;
-use std::net::TcpListener;
+use std::net::{TcpListener, Shutdown};
 use std::net::TcpStream;
 use std::path::PathBuf;
 
@@ -10,6 +11,8 @@ use regex::Regex;
 
 use password_file::PasswordFile;
 
+use clipboard::ClipboardContext;
+use clipboard::ClipboardProvider;
 mod password_file;
 
 type Result<T> = std::result::Result<T, String>;
@@ -27,7 +30,7 @@ fn main() {
     for stream in listener.incoming() {
         let mut stream = stream.expect("Stream error!");
 
-        if stream.local_addr().unwrap().ip().is_loopback() { refuse_connection(&mut stream) }
+        if !stream.local_addr().unwrap().ip().is_loopback() { refuse_connection(&mut stream) }
 
         let mut buf_reader = BufReader::new(&stream);
         let mut buffer = String::new();
@@ -70,8 +73,8 @@ fn main() {
         };
 
         println!("Response: '{:#?}'", response);
-        stream.write(format!("{}", response.map_or_else(|s| s, |e| e)).as_bytes()).unwrap();
-        //stream.flush().unwrap();
+        stream.write_all(format!("{}", response.map_or_else(|s| s, |e| e)).as_bytes()).unwrap();
+        stream.shutdown(Shutdown::Both).expect("Can not shutdown stream.");
     }
 }
 
