@@ -17,8 +17,8 @@ extern crate clipboard as other_clip;
 
 use other_clip::ClipboardProvider;
 use other_clip::ClipboardContext;
-
-
+use std::time::Duration;
+use std::str::from_utf8;
 
 
 fn main() {
@@ -237,9 +237,27 @@ fn create_clipboard(context: String) {
 }
 
 fn msg_daemon(data: String) -> String{
+    let mut tcp_stream = TcpStream::connect("localhost:7878").expect("Failed to connect.");
+    println!("Successfully connected to server {}", tcp_stream.peer_addr().unwrap().to_string());
+    tcp_stream.set_read_timeout(Some(Duration::new(3, 0)));
+    tcp_stream.set_write_timeout(Some(Duration::new(3, 0)));
 
+    let msg = data.as_bytes();
+    tcp_stream.write(msg).unwrap();
+    println!("Sent '{}', awaiting reply...", data);
 
-
+    let mut data = [0 as u8; 6]; // using 6 byte buffer
+    match tcp_stream.read(&mut data) {
+        Ok(_) => {
+            let text = from_utf8(&data).unwrap();
+            println!("Unexpected reply: {}", text);
+            text.to_string()
+        }
+        Err(e) => {
+            println!("Failed to receive data: {}", e);
+            e.to_string()
+        }
+    }
 }
 
 /// Returns a randomly generated password string
