@@ -8,7 +8,9 @@
   ```
 - Add a new password entry:
   ```
-  ADD name key:value;key:value;... \n
+  ADD name
+  key:value;key:value;...
+  EOF
   ```
 - Delete a password entry:
   ```
@@ -25,5 +27,10 @@
   ```
   OPEN filename
   masterkey
+  EOF
+  ```
+- Write a password to the clipboard
+  ```
+  CLIPBOARD name
   EOF
   ```
