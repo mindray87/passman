@@ -1,3 +1,13 @@
+mod clipboard;
+mod pass;
+
+use std::env;
+use std::io::{BufRead, BufReader, BufWriter, Write, Read};
+use std::net::TcpListener;
+use std::net::TcpStream;
+use std::thread;
+use rand::distributions::Alphanumeric;
+use rand::Rng;
 //terminal:
 // passman verb option
 // passman get gmail
@@ -5,23 +15,14 @@
 // passman get google -u -> username
 extern crate clipboard as other_clip;
 
-use std::env;
-use std::io::{BufRead, BufReader, BufWriter, Read, Write};
-use std::net::TcpListener;
-use std::net::TcpStream;
-use std::str::from_utf8;
-use std::thread;
-
-use other_clip::ClipboardContext;
 use other_clip::ClipboardProvider;
-use rand::distributions::Alphanumeric;
-use rand::Rng;
-use std::time::Duration;
+use other_clip::ClipboardContext;
 
-mod clipboard;
-mod pass;
+
+
 
 fn main() {
+
     let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
 
     let the_string = "Hello, world!";
@@ -65,13 +66,13 @@ fn main() {
                     let username = ask_for_username();
                     let password = yes_or_no();
                     let data = format!(
-                        "b'ADD {}\nusername:{};password:{};",
+                        "ADD {}\nusername:{};password:{};",
                         &acc, &username, &password
                     );
                     msg_daemon(data);
                 }
                 "close" => {
-                    let data = format!("b'CLOSE\n'");
+                    let data = format!("CLOSE\n'");
                     msg_daemon(data);
                 }
                 "create" | "open" => {
@@ -81,95 +82,99 @@ fn main() {
                     //password = &yes_no;
                     let data;
                     if cmd == "create" {
-                        data = format!("b'CREATE {}\n{};'", &filename, &password);
+                        data = format!("CREATE {}\n{};", &filename, &password);
                     } else {
-                        data = format!("b'OPEN {}\n{};'", &filename, &password);
+                        data = format!("OPEN {}\n{}", &filename, &password);
                     }
                     println!("data for daemon: {}", data);
                     msg_daemon(data);
                 }
                 "delete" => {
                     let acc = ask_for_accountname();
-                    let data = format!("b'DELETE {}'", &acc);
+                    let data = format!("DELETE {}", &acc);
                     msg_daemon(data);
                 }
                 "get" => {
                     let acc = ask_for_accountname();
 
-                    let data = format!("b'GET {}'", &acc);
-                    msg_daemon(data);
-                }
-                "help" => {
-                    print_help();
-                }
-                _ => println!("b"),
-            }
-        }
-        // passman command accountname
-        3 | 4 | 5 => {
-            let cmd = &args[1];
-            acc = &args[2];
-            match &cmd[..] {
-                "add" => {
-                    let username;
-                    if args.len() > 3 {
-                        username = &args[3];
-                    } else {
-                        tmp = ask_for_username();
-                        username = &tmp;
+                            let data = format!("GET {}", &acc);
+                            msg_daemon(data);
+                        },
+                        "help" => {
+                            print_help();
+                        },
+                        _ => println!("b"),
                     }
+                }
+                // passman command accountname
+                3 | 4 | 5 => {
+                    //open with param
+                    //close with param
+                    let cmd = &args[1];
+                    acc = &args[2];
+                    match &cmd[..] {
+                        "add" => {
+                            let username;
+                            if args.len() >= 3{
+                                username = &args[2];
+                            } else {
+                                tmp = ask_for_username();
+                                username = &tmp;
+                            }
 
-                    if args.len() > 4 {
-                        password = &args[4]
-                    } else {
-                        yes_no = yes_or_no();
-                        password = &yes_no;
-                    }
+                            if args.len() >= 4 {
+                                password = &args[3]
+                            } else {
+                                yes_no = yes_or_no();
+                                password = &yes_no;
+                            }
 
-                    let data = format!(
-                        "b'ADD {}\nusername:{};password:{};",
-                        acc, username, password
-                    );
-                    println!("data for daemon: {}", data);
-                    msg_daemon(data);
-                }
-                "create" | "open" => {
-                    if args.len() > 3 {
-                        filename = &args[3];
-                    } else {
-                        tmp = ask_for_filename();
-                        filename = &tmp;
+                            let data = format!(
+                                "ADD {}\nusername:{};password:{};",
+                                acc, username, password
+                            );
+                            println!("data for daemon: {}", data);
+                            msg_daemon(data);
+                        },
+                        "create" | "open" => {
+                            if args.len() > 3{
+                                filename = &args[3];
+                            } else {
+                                tmp = ask_for_filename();
+                                filename = &tmp;
+                            }
+                            if args.len() > 4{
+                                password = &args[4];
+                            } else {
+                                yes_no = yes_or_no();
+                                password = &yes_no;
+                            }
+                            let data;
+                            if cmd == "create" {
+                                data = format!("CREATE {}\n{}", filename, password);
+                            } else {
+                                data = format!("OPEN {}\n{}", filename, password);
+                            }
+                            println!("data for daemon: {}", data);
+                            msg_daemon(data);
+                        }
+                        "delete" => {
+                            let data = format!("DELETE {}'", acc);
+                            msg_daemon(data);
+                        },
+                        "get" => {
+                            let data = format!("GET {}'", acc);
+                            let res = msg_daemon(data);
+                            create_clipboard(res);
+
+                        },
+                        _ => print_help()
                     }
-                    if args.len() > 4 {
-                        password = &args[4];
-                    } else {
-                        yes_no = yes_or_no();
-                        password = &yes_no;
-                    }
-                    let data;
-                    if cmd == "create" {
-                        data = format!("b'CREATE {}\n{};'", filename, password);
-                    } else {
-                        data = format!("b'OPEN {}\n{};'", filename, password);
-                    }
-                    println!("data for daemon: {}", data);
-                    msg_daemon(data);
                 }
-                "delete" => {
-                    let data = format!("b'DELETE {}'", acc);
-                    msg_daemon(data);
-                }
-                "get" => {
-                    let data = format!("b'GET {}'", acc);
-                    let res = msg_daemon(data);
-                    create_clipboard(res);
-                }
-                _ => print_help()
+                _ => print_help(),
             }
-        }
-        _ => print_help(),
-    }
 }
+
 
 
 fn ask_for_userinput(option: String) {
@@ -227,32 +232,14 @@ fn ask_for_username() -> String {
 
 fn create_clipboard(context: String) {
     let clp_thread = thread::spawn(move || {
-        //ctx.set_contents(res.to_owned().unwrap());
+        ctx.set_contents(res.to_owned().unwrap());
     });
 }
 
-fn msg_daemon(data: String) -> String {
-    let mut tcp_stream = TcpStream::connect("localhost:7878").expect("Failed to connect.");
-    println!("Successfully connected to server {}", tcp_stream.peer_addr().unwrap().to_string());
-    tcp_stream.set_read_timeout(Some(Duration::new(3, 0)));
-    tcp_stream.set_write_timeout(Some(Duration::new(3, 0)));
+fn msg_daemon(data: String) -> String{
 
-    let msg = data.as_bytes();
-    tcp_stream.write(msg).unwrap();
-    println!("Sent '{}', awaiting reply...", data);
 
-    let mut data = [0 as u8; 28]; // using 6 byte buffer
-    match tcp_stream.read(&mut data) {
-        Ok(_) => {
-            let text = from_utf8(&data).unwrap();
-            println!("Unexpected reply: {}", text);
-            text.to_string()
-        }
-        Err(e) => {
-            println!("Failed to receive data: {}", e);
-            e.to_string()
-        }
-    }
+
 }
 
 /// Returns a randomly generated password string
@@ -268,8 +255,8 @@ fn make_pass(length: u32) -> String {
     let lower = (b'a'..=b'z').map(|c| c as char).collect::<Vec<_>>();
     let digits = vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     let special = vec![
-        b',', b'.', b'_', b'-', b'!', b'$', b'&', b'/', b'(', b')', b'=', b'?', b'#', b'*', b'+',
-        b'<', b'>', b'%', b'(', b')',
+        ,', .', _', -', !', $', &', /', (', )', =', ?', #', *', +',
+        <', >', %', (', )',
     ];
     let length = length as usize;
     let id = rand::thread_rng()
@@ -290,12 +277,12 @@ fn print_help() {
     println!();
     println!("open <filename> -> opens the file <filename> with your stored accounts and passwords");
     println!();
-    println!("get <accountname> -> this will search the db for your username and passwort for the given account and copy the password to your clipboard");
+    println ! ("get <accountname> -> this will search the db for your username and passwort for the given account and copy the password to your clipboard");
     println!();
-    println!("del <accountname> -> this will delete your username and password for <accountname> from the db if it exists");
+    println ! ("del <accountname> -> this will delete your username and password for <accountname> from the db if it exists");
     println!();
-    println!("new <accountname> <username> <password>(optional) -> this will create an account in the db with your given username and password");
-    println!("if you leave the password field empty, we'll ask you for your preferred password choices and generate it randomly.");
+    println ! ("new <accountname> <username> <password>(optional) -> this will create an account in the db with your given username and password");
+    println ! ("if you leave the password field empty, we'll ask you for your preferred password choices and generate it randomly.");
 }
 
 fn yes_or_no() -> String {
