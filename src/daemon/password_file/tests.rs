@@ -100,19 +100,3 @@ fn de_and_encrypt() {
     assert_eq!(paswd_file.get_entry("Rust_Nerds").unwrap(), vec);
     fs::remove_file(filename).unwrap();
 }
-//
-// #[test]
-// fn test() {
-//     let filename = "src/daemon/password_file/test_password_files/pw_file.pass";
-//     let mut paswd_file = PasswordFile::new(filename, "keeeey").unwrap();
-//     let vec = vec![EntryValue::new("username", "rustic expert"), EntryValue::new("password", "abc")];
-//
-//     paswd_file.add_entry("Rust Nerds", vec.clone()).unwrap();
-//     assert_eq!(paswd_file.get_entry("Rust Nerds").unwrap(), vec);
-//     println!("Init Vec before: {:?}", paswd_file.init_vec);
-//     let text = format!("{:?}", &paswd_file.entries);
-//     let result = encrypt(&text, &paswd_file.key, &paswd_file.init_vec).unwrap();
-//     let res = decrypt(&result, &paswd_file.key, &paswd_file.init_vec).unwrap();
-//     assert_eq!(text, res);
-//     fs::remove_file(filename).unwrap();
-// }
