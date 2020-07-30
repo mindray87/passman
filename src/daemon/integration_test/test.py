@@ -3,6 +3,7 @@
 import os
 import socket
 import unittest
+import subprocess
 
 
 class Tests(unittest.TestCase):
@@ -41,6 +42,15 @@ class Tests(unittest.TestCase):
         self.assertEqual(send_request(b'GET gmail'), 'ERR NoOpenPasswordFile')
         self.assertEqual(send_request(b'OPEN test_file'), 'OK')
         self.assertEqual(send_request(b'GET gmail'), 'OK username:name;password:passwd')
+
+    @classmethod
+    def setUpClass(cls):
+#           SetUp Deaemon
+#         print("--- Start Tests ---")
+#         proc1 = subprocess.Popen(os.getcwd() + "/target/debug/passman-daemon", shell=False)
+#         os.popen(os.getcwd() + "/target/debug/passman-daemon")
+#         p = subprocess.Popen(["sleep 2"])
+#         p.wait()
 
     def tearDown(self):
         try:

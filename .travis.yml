@@ -5,4 +5,3 @@ before_install:
 
 script:
   - cargo test --verbose --all
-  - python3 -m unittest src/daemon/integration_test/test.py
