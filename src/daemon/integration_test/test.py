@@ -21,7 +21,6 @@ class Tests(unittest.TestCase):
         self.assertEqual(send_request(b'CREATE test_file key'), 'OK')
         self.assertEqual(send_request(b'ADD gmail username:name;password:passwd'), 'OK')
         self.assertEqual(send_request(b'GET gmail'), 'OK username:name;password:passwd')
-        print("")
 
     @unittest.skip("demonstrating skipping")
     def test_delete(self):
@@ -62,7 +61,7 @@ class Tests(unittest.TestCase):
 
     def tearDown(self):
         try:
-            os.remove("/home/julian/.passman/test_file.pass")
+            os.remove(f"/home/{os.environ['USER']}/.passman/test_file.pass")
         except FileNotFoundError:
             pass
 
