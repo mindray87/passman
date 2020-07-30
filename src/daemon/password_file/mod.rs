@@ -12,9 +12,9 @@ use rand::RngCore;
 use rand::rngs::OsRng;
 use rustc_serialize::base64::{FromBase64, STANDARD, ToBase64};
 
-use crate::key_value::KeyValue;
+use crate::entry_value::EntryValue;
 
-use super::key_value;
+use super::entry_value;
 
 use self::regex::Regex;
 
@@ -24,10 +24,10 @@ pub struct PasswordFile {
     filename: String,
     is_open: bool,
     init_vec: [u8; 16],
-    entries: HashMap<String, Vec<KeyValue>>,
+    entries: HashMap<String, Vec<EntryValue>>,
 }
 
-fn vec_to_string(v: &mut Vec<KeyValue>) -> String {
+fn vec_to_string(v: &mut Vec<EntryValue>) -> String {
     let v: Vec<String> = v.iter_mut().map(|x| x.to_str()).collect();
     v.join(";")
 }
@@ -97,14 +97,14 @@ impl PasswordFile {
         Result::Ok(())
     }
 
-    pub fn get_entry(&self, entry_name: &str) -> Result<Vec<KeyValue>> {
+    pub fn get_entry(&self, entry_name: &str) -> Result<Vec<EntryValue>> {
         match self.entries.get(entry_name) {
             Some(entry) => Ok(entry.to_vec()),
             None => Err(format!("No entry with name '{}'", entry_name))?,
         }
     }
 
-    pub fn add_entry(&mut self, entry_name: &str, values: Vec<KeyValue>) -> Result<()> {
+    pub fn add_entry(&mut self, entry_name: &str, values: Vec<EntryValue>) -> Result<()> {
         self.entries.insert(entry_name.to_string(), values);
         Ok(())
     }
@@ -114,19 +114,19 @@ impl PasswordFile {
         Ok(())
     }
 
-    fn parse_file_content(content: &str, map: &mut HashMap<String, Vec<KeyValue>>) -> Result<()> {
+    fn parse_file_content(content: &str, map: &mut HashMap<String, Vec<EntryValue>>) -> Result<()> {
         let entry_names: Vec<&str> = content.lines().filter(|x| x.starts_with(">")).collect();
         let lines: Vec<&str> = content.lines().collect();
 
         entry_names.into_iter().for_each(|name| {
             let idx = content.lines().position(|x| name == x).unwrap();
-            let values: Vec<KeyValue> = lines
+            let values: Vec<EntryValue> = lines
                 .get(idx + 1)
                 .unwrap()
                 .split(";")
                 .map(|key_value| {
                     let s: Vec<&str> = key_value.split(":").collect();
-                    KeyValue::new(s[0], s[1])
+                    EntryValue::new(s[0], s[1])
                 })
                 .collect();
             map.insert(name.replace(">", ""), values);

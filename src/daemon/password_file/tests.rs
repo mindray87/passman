@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::ops::Add;
 
-use crate::key_value::KeyValue;
+use crate::entry_value::EntryValue;
 use crate::password_file::PasswordFile;
 
 #[test]
@@ -12,26 +12,26 @@ fn parse_file() {
             .add(">Darknet\nusername:blackHat666;password:pwd\n")
             .add(">Internet\nusername:sexyBienchen68;password:strongPassword123\n");
 
-    let mut map: HashMap<String, Vec<KeyValue>> = HashMap::new();
+    let mut map: HashMap<String, Vec<EntryValue>> = HashMap::new();
     PasswordFile::parse_file_content(&file_content, &mut map).unwrap();
     assert_eq!(map.len(), 3);
 
     assert!(map
         .get("Darknet")
         .unwrap()
-        .contains(&KeyValue::new("username", "blackHat666")));
+        .contains(&EntryValue::new("username", "blackHat666")));
 
-    assert!(map.get("Darknet").unwrap().contains(&KeyValue::new("password", "pwd")));
-
-    assert!(map
-        .get("Internet")
-        .unwrap()
-        .contains(&KeyValue::new("username", "sexyBienchen68")));
+    assert!(map.get("Darknet").unwrap().contains(&EntryValue::new("password", "pwd")));
 
     assert!(map
         .get("Internet")
         .unwrap()
-        .contains(&KeyValue::new("password", "strongPassword123")));
+        .contains(&EntryValue::new("username", "sexyBienchen68")));
+
+    assert!(map
+        .get("Internet")
+        .unwrap()
+        .contains(&EntryValue::new("password", "strongPassword123")));
 }
 
 #[test]
@@ -55,14 +55,14 @@ fn create_file() {
 fn get_entry() {
     let mut paswd_file = PasswordFile::open("src/daemon/password_file/test_password_files/password_file.pass").unwrap();
     assert_eq!(paswd_file.get_entry("Gmail").unwrap(),
-               vec![KeyValue::new("username", "julianriegraf@gmail.com"), KeyValue::new("password", "1234567890")]);
+               vec![EntryValue::new("username", "julianriegraf@gmail.com"), EntryValue::new("password", "1234567890")]);
 }
 
 #[test]
 fn add_entry() {
     let mut paswd_file = PasswordFile::open("src/daemon/password_file/test_password_files/password_file.pass").unwrap();
-    let username = KeyValue::new("username", "rustic expert");
-    let password = KeyValue::new("password", "abc");
+    let username = EntryValue::new("username", "rustic expert");
+    let password = EntryValue::new("password", "abc");
     let vec = vec![username, password];
 
     paswd_file.add_entry("Rust Nerds", vec.clone()).unwrap();
@@ -72,8 +72,8 @@ fn add_entry() {
 #[test]
 fn delete_entry() {
     let mut paswd_file = PasswordFile::open("src/daemon/password_file/test_password_files/password_file.pass").unwrap();
-    let username = KeyValue::new("username", "rustic expert");
-    let password = KeyValue::new("password", "abc");
+    let username = EntryValue::new("username", "rustic expert");
+    let password = EntryValue::new("password", "abc");
     let vec = vec![username, password];
 
     paswd_file.add_entry("Rust Nerds", vec.clone()).unwrap();

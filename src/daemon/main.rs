@@ -14,9 +14,9 @@ use regex::Regex;
 
 use password_file::PasswordFile;
 
-use crate::key_value::KeyValue;
+use crate::entry_value::EntryValue;
 
-mod key_value;
+mod entry_value;
 
 mod password_file;
 
@@ -99,12 +99,12 @@ fn add(password_file: Option<&mut PasswordFile>, message: &String) -> Result<Str
 
     let re = Regex::new(r"^((([^;\n:]+:[^;\n:]+);)*([^;\n:]+:[^\n;:]+))\n*$").unwrap();
     if !key_values.is_empty() && !re.is_match(key_values) {
-        return Result::Err("Content is not proper formatted!".to_string());
+        return Result::Err("BAD REQUEST".to_string());
     }
 
-    let vec: Vec<KeyValue> = key_values.split(";").map(|kv| {
+    let vec: Vec<EntryValue> = key_values.split(";").map(|kv| {
         let a: Vec<&str> = kv.split(":").collect();
-        KeyValue::new(a[0], a[1])
+        EntryValue::new(a[0], a[1])
     }).collect();
     password_file.add_entry(&name, vec).or(Err("Adding the entry failed."))?;
     Ok("".to_string())
@@ -119,7 +119,7 @@ fn delete(psw_file: Option<&mut PasswordFile>, message: &String) -> Result<Strin
 
 fn get(psw_file: &Option<PasswordFile>, message: &String) -> Result<String> {
     let psw_file = psw_file.as_ref().ok_or("NoOpenPasswordFile".to_string())?;
-    let mut vec_result: Vec<KeyValue> = psw_file.get_entry(message.split(" ").nth(1).unwrap().borrow())
+    let mut vec_result: Vec<EntryValue> = psw_file.get_entry(message.split(" ").nth(1).unwrap().borrow())
         .or(Err(format!("NotFound")))?;
     let v: Vec<String> = vec_result.iter_mut().map(|x| x.to_str()).collect();
     Ok(v.join(";"))

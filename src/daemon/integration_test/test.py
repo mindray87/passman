@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from builtins import FileNotFoundError, classmethod
 
 import os
 import socket
@@ -29,7 +30,7 @@ class Tests(unittest.TestCase):
 
     def test_close(self):
         self.assertEqual(send_request(b'CREATE test_file'), 'OK')
-        self.assertEqual(send_request(b'CLOSE test_file'), 'OK')
+        self.assertEqual(send_request(b'CLOSE'), 'OK')
         self.assertEqual(send_request(b'GET gmail'), 'ERR NoOpenPasswordFile')
 
     def test_open_not_existing_file(self):
@@ -38,19 +39,20 @@ class Tests(unittest.TestCase):
     def test_open(self):
         self.assertEqual(send_request(b'CREATE test_file'), 'OK')
         self.assertEqual(send_request(b'ADD gmail username:name;password:passwd'), 'OK')
-        self.assertEqual(send_request(b'CLOSE test_file'), 'OK')
+        self.assertEqual(send_request(b'CLOSE'), 'OK')
         self.assertEqual(send_request(b'GET gmail'), 'ERR NoOpenPasswordFile')
         self.assertEqual(send_request(b'OPEN test_file'), 'OK')
         self.assertEqual(send_request(b'GET gmail'), 'OK username:name;password:passwd')
 
     @classmethod
     def setUpClass(cls):
-#           SetUp Deaemon
-#         print("--- Start Tests ---")
-#         proc1 = subprocess.Popen(os.getcwd() + "/target/debug/passman-daemon", shell=False)
-#         os.popen(os.getcwd() + "/target/debug/passman-daemon")
-#         p = subprocess.Popen(["sleep 2"])
-#         p.wait()
+        pass
+        # SetUp Deaemon
+        # print("--- Start Tests ---")
+        # proc1 = subprocess.Popen(os.getcwd() + "/target/debug/passman-daemon", shell=False)
+        # os.popen(os.getcwd() + "/target/debug/passman-daemon")
+        # p = subprocess.Popen(["sleep 2"])
+        # p.wait()
 
     def tearDown(self):
         try:

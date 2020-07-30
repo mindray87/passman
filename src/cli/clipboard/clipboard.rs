@@ -1,4 +1,4 @@
-use crate::pass::Password;
+use crate::argument::Password;
 
 extern crate copypasta;
 
