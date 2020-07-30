@@ -1,3 +1,7 @@
+pub enum Options {
+
+}
+
 pub struct Argument {
     short: String,
     long: String,

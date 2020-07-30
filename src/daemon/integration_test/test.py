@@ -10,7 +10,7 @@ import subprocess
 class Tests(unittest.TestCase):
 
     def test_create(self):
-        self.assertEqual(send_request(b'CREATE test_file'), 'OK')
+        self.assertEqual(send_request(b'CREATE test_file key'), 'OK')
 
     def test_add(self):
         self.assertEqual(send_request(b'CREATE test_file'), 'OK')
