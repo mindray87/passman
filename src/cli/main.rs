@@ -9,12 +9,16 @@ use std::env;
 use std::io::{BufRead, BufReader, BufWriter, Read, Write};
 use std::net::TcpStream;
 use std::net::{Shutdown, TcpListener};
-
+//terminal:
+// passman verb option
+// passman get gmail
+// passman delete account
+// passman get google -u -> username
 
 use std::process::exit;
 use std::str::from_utf8;
 use std::time::Duration;
-//CLIPBOARD ENDPOINT
+
 fn main() {
     println!("passman starting...");
     let args: Vec<String> = env::args().collect();
@@ -149,7 +153,10 @@ fn main() {
     }
 }
 
-/// Returns a u32 that is used to generate a random passwort with the given length.
+fn ask_for_userinput(option: String) {
+    //...TODO
+}
+
 fn ask_for_pass() -> u32 {
     println!("passman will generate your password now.");
     println!("How long do you want your password to be? (maximum of 128.");
@@ -163,7 +170,6 @@ fn ask_for_pass() -> u32 {
     pw_length
 }
 
-/// Returns a String that contains the accountname.
 fn ask_for_accountname() -> String {
     let mut input_username = String::new();
 
@@ -176,7 +182,6 @@ fn ask_for_accountname() -> String {
     input_username
 }
 
-/// Returns a String that contains the filename.
 fn ask_for_filename() -> String {
     let mut input_username = String::new();
 
@@ -188,7 +193,7 @@ fn ask_for_filename() -> String {
     println!("your filename is {}", input_username);
     input_username
 }
-/// Returns a String that contains the username.
+
 fn ask_for_username() -> String {
     let mut input_username = String::new();
 
@@ -201,18 +206,6 @@ fn ask_for_username() -> String {
     input_username
 }
 
-/// Returns a String that represents the servers response to our request.
-///
-/// # Arguments
-///
-/// *`data` - A String containing the request to the server.
-///
-/// # Examples
-///
-/// ```
-/// let data: String = "ADD accountname:gmail;username:gmailuser;password:Gm4!L".to_string();
-/// let resp = msg_daemon(data);
-/// ```
 fn msg_daemon(data: String) -> String {
     let mut tcp_stream = TcpStream::connect("localhost:7878").expect("Failed to connect.");
     println!(
@@ -250,13 +243,6 @@ fn msg_daemon(data: String) -> String {
 /// #Arguments
 ///
 /// * `length` - The chosen lenght for the password choosen by the user.
-///
-/// # Examples
-///
-/// ```
-/// let length:u32 = 12;
-/// make_pass(length);
-/// ```
 //TODO: Change arguments: uppercase: usize, lower: usize, digits: usize, specials: usize
 fn make_pass(length: u32) -> String {
     //TODO: make function that has 4 lists -> digits, uppercase lowercase, special chars !"§$%&...
@@ -297,8 +283,6 @@ fn print_help() {
     println ! ("if you leave the password field empty, we'll ask you for your preferred password choices and generate it randomly.");
 }
 
-/// A Simple yes or no Question, in this case to check if the user wants to get a random password
-/// or type a password, if not given as a param to passman
 fn yes_or_no() -> String {
     println!("you have not entered a password. Should passman create it for you? (y / n)");
     let mut password_gen = String::from("");
@@ -309,11 +293,11 @@ fn yes_or_no() -> String {
 
     let yes_no = answer.trim();
     match &yes_no[..] {
-        "y" | "Y" | "yes" | "Yes" => {
+        "y" | "Y" => {
             let len = ask_for_pass();
             password_gen = make_pass(len);
         }
-        "n" | "N" | "no" | "No" => {
+        "n" | "N" => {
             println!("Please enter your costum password now: ");
             let mut answer = String::new();
             std::io::stdin()

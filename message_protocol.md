@@ -29,3 +29,8 @@
   masterkey
   EOF
   ```
+- Write a password to the clipboard
+  ```
+  CLIPBOARD name
+  EOF
+  ```
