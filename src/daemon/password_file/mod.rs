@@ -42,7 +42,6 @@ impl PasswordFile {
         let path = Path::new(&filename);
         if path.exists() { return Err("FileExistsAlready".to_string()); }
 
-        println!("Path: {:?}", path);
         fs::write(path, format!("PASSMAN\n{}", init_vec.to_base64(STANDARD)).as_bytes()).map_err(|e| e.to_string())?;
 
         Ok(Self {
@@ -77,15 +76,12 @@ impl PasswordFile {
             .collect();
         let encrypted_data: String = encrypted_data.join("\n");
 
-        println!("Encrypted data in open: {:?}", encrypted_data);
-
-
-        // TODO: decrypt data
+        //  decrypt data
         let encrypted_data = encrypted_data.from_base64().map_err(|err| err.to_string())?;
         let data = passman_crypto::decrypt(
             &encrypted_data,
             &key.to_string(),
-            <&[u8; 16]>::try_from(init_vec.as_slice()).map_err(|err| err.to_string())?);
+            <&[u8; 16]>::try_from(init_vec.as_slice()).map_err(|err| err.to_string())?)?;
 
         // validate data
         let regex = r"^((>.+\n((([^;\n]+:[^;\n]+);)*([^;\n]+:[^\n;]+)))\n)*(>.+\n((([^;\n]+:[^;\n]+);)*([^;\n]+:[^\n;]+)))\n*$";
@@ -116,11 +112,8 @@ impl PasswordFile {
             .map(|(key, val)| format!(">{}\n{}", key, val)).collect();
 
         // encrypt data
-        let encrypted_data = passman_crypto::encrypt(&data, &password_file.key, &password_file.init_vec);
+        let encrypted_data = passman_crypto::encrypt(&data, &password_file.key, &password_file.init_vec)?;
         let encrypted_data = encrypted_data.to_base64(STANDARD);
-
-        println!("Encrypted data in close: {:?}", encrypted_data);
-
 
         // create file and write content
         let path = Path::new(&password_file.filename);
