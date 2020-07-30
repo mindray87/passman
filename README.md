@@ -8,6 +8,12 @@ A simple password manager for your terminal.
 
 [![Build Status](https://travis-ci.com/mindray87/pwd-man.svg?token=ziwkzZeesRqGqDpdiqQf&branch=master)](https://travis-ci.com/mindray87/pwd-man)
 
+## Doc
+#### build: 
+```shell script
+cargo doc --open --no-deps --bin passman-cli --bin passman-daemon 
+```
+
 ## TODO:
 
 ### CLI

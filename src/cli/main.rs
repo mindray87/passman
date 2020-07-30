@@ -3,22 +3,19 @@ use std::env;
 use std::io::{BufRead, BufReader, Write};
 use std::net::Shutdown;
 use std::net::TcpStream;
-
-use std::iter::FromIterator;
 use std::process::exit;
-use std::time::Duration;
 
 fn main() {
     println!();
     println!("############################################");
     println!("#                                          #");
-    println!("#        Starting pacman                   #");
+    println!("#        Starting passman                  #");
     println!("#              (\\./)                       #");
     println!("#              (-.-)                       #");
     println!("#              (.)(.)                      #");
+    println!("#                                          #");
     println!("############################################");
     println!();
-    println!("passman starting...\n");
 
     let args: Vec<String> = env::args().collect();
 
@@ -64,8 +61,7 @@ fn main() {
                 }
                 "create" | "open" => {
                     //println!("debug 3 create open");
-                    let mut
-                    filename = ask_for_filename();
+                    let filename = ask_for_filename();
                     let password: String;
                     //password = &yes_no;
                     let data;
