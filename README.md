@@ -8,30 +8,24 @@ A simple password manager for your terminal.
 
 [![Build Status](https://travis-ci.com/mindray87/pwd-man.svg?token=ziwkzZeesRqGqDpdiqQf&branch=master)](https://travis-ci.com/mindray87/pwd-man)
 
-## Doc
-#### build: 
-```shell script
-cargo doc --open --no-deps --bin passman-cli --bin passman-daemon 
-```
-
 ## TODO:
 
 ### CLI
-- [ ] parse arguments
-- [ ] open connection to daemon
-- [ ] send messages to daemon
-- [ ] clipboard action
-- [ ] password generator
+- [x] parse arguments
+- [x] open connection to daemon
+- [x] send messages to daemon
+- [x] clipboard action
+- [x] password generator
 - [ ] encrypt socket connection
 
 ### Daemon  
-- [ ] open and save password file
-- [ ] encrypt and decrypt password file
-- [ ] create password file
-- [ ] write, read, and delete passwords
-- [ ] receive messages
-- [ ] send messages
-- [ ] accept only messages form localhost
+- [x] open and save password file
+- [x] encrypt and decrypt password file
+- [x] create password file
+- [x] write, read, and delete passwords
+- [x] receive messages
+- [x] send messages
+- [x] accept only messages form localhost
 - [ ] auto close password file
 
 ## Build and Install
@@ -48,5 +42,11 @@ sudo sed -i "s/<<USER>>/$USER/g" /etc/systemd/system/passman.service
 sudo systemctl start passman
 
 # run the cli
-TODO
+TODO: Add Passman to PATH
+```
+
+## Build Documentation
+#### build: 
+```shell script
+cargo doc --open --no-deps --bin passman-cli --bin passman-daemon 
 ```
