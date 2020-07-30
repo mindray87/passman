@@ -1,3 +1,7 @@
+mod password_file;
+mod entry_value;
+mod passman_crypto;
+
 use std::{env, fs, thread, time};
 use std::borrow::Borrow;
 use std::io::BufReader;
@@ -12,10 +16,6 @@ use regex::Regex;
 
 use crate::entry_value::EntryValue;
 use crate::password_file::PasswordFile;
-
-mod entry_value;
-mod passman_crypto;
-mod password_file;
 
 type Result<T> = std::result::Result<T, String>;
 
@@ -48,6 +48,7 @@ fn main() {
             .unwrap()
         {
             "GET" => get(&password_file, &buffer),
+            "CLIPBOARD" => clipboard(&password_file, &buffer),
             "ADD" => add(password_file.as_mut(), &buffer),
             "DELETE" => delete(password_file.as_mut(), &buffer),
             "CREATE" => {
@@ -76,7 +77,10 @@ fn main() {
 
         let response = response.map(|ok| format!("OK {}", ok)).map_err(|err| format!("ERR {}", err));
         stream.write_all(response.map_or_else(|s| s, |e| e).trim().as_bytes()).unwrap();
-        stream.shutdown(Shutdown::Both).expect("Can not shutdown stream.");
+        match stream.shutdown(Shutdown::Both) {
+            Ok(_) => (),
+            Err(e) => eprintln!("{}", e.to_string())
+        };
     }
 }
 
@@ -147,6 +151,20 @@ fn get(psw_file: &Option<PasswordFile>, message: &String) -> Result<String> {
     Ok(msg)
 }
 
+/// Copies the password for an account to the clipboard.
+///
+/// # Arguments
+///
+/// *`psw_file` - the password file, where data is deleted
+/// *`message` - the request sent to the daemon
+fn clipboard(psw_file: &Option<PasswordFile>, message: &String) -> Result<String> {
+    let entry = get(psw_file, message)?;
+    let password_value = entry.split(";").find(|x| x.starts_with("password"))
+        .ok_or("NoPasswordProvided")?;
+    let password = password_value.split(":").nth(1).ok_or("ErrorOccurred")?;
+    write_to_clipboard(password.trim().to_string());
+    Ok("".to_string())
+}
 /// Returns the path to the created password file or an error if the creation went wrong.
 ///
 /// # Arguments

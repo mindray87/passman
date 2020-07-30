@@ -5,13 +5,12 @@ authors = ["mindray87 <pa.toth87@gmail.com>", "jriegraf <julianriegraf@web.de>"]
 edition = "2018"
 
 [[bin]]
-name = "passman-daemon"
+name = "passmand"
 path = "src/daemon/main.rs"
 
 [[bin]]
-name = "passman-cli"
+name = "passman"
 path = "src/cli/main.rs"
-
 
 [dependencies]
 clipboard = "0.5.0"

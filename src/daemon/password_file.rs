@@ -11,9 +11,12 @@ use rustc_serialize::base64::{FromBase64, STANDARD, ToBase64};
 
 use crate::entry_value::EntryValue;
 use crate::passman_crypto;
+
 use self::regex::Regex;
 
 type Result<T> = std::result::Result<T, String>;
+
+
 
 pub struct PasswordFile {
     filename: String,
@@ -28,8 +31,16 @@ fn vec_to_string(v: &mut Vec<EntryValue>) -> String {
     v.join(";")
 }
 
+fn validate_key(key: &str) -> Result<String> {
+    if key.len() > 16 { return Err("KeyLimitExceeded".to_string()); }
+    let k = &mut [65 as u8; 16];
+    key.as_bytes().into_iter().enumerate().for_each(|(i, x)| k[i] = *x);
+    Ok(String::from_utf8(k.to_vec()).map_err(|err| err.to_string())?)
+}
+
 impl PasswordFile {
     pub fn new(filename: &str, key: &str) -> Result<Self> {
+        let key = validate_key(key)?;
         let mut init_vec = [0; 16];
         OsRng.fill_bytes(&mut init_vec);
 
@@ -40,7 +51,7 @@ impl PasswordFile {
 
         Ok(Self {
             filename: filename.to_string(),
-            key: key.to_string(),
+            key,
             is_open: false,
             init_vec,
             entries: HashMap::new(),
@@ -50,6 +61,9 @@ impl PasswordFile {
     ///
     ///
     pub fn open(filename: &str, key: &str) -> Result<PasswordFile> {
+
+        // validate the key
+        let key = validate_key(key)?;
 
         // check if file exists
         let path = Path::new(filename);
@@ -87,7 +101,7 @@ impl PasswordFile {
         // build the struct
         let mut psw_file = Self {
             filename: path.to_str().unwrap().to_owned(),
-            key: key.to_string(),
+            key,
             is_open: true,
             init_vec: <[u8; 16]>::try_from(init_vec.as_slice()).unwrap(),
             entries: HashMap::new(),
@@ -103,7 +117,7 @@ impl PasswordFile {
         // serialize data
         let data: String = password_file.entries.iter_mut()
             .map(|(key, val)| (key, vec_to_string(val.as_mut())))
-            .map(|(key, val)| format!(">{}\n{}", key, val)).collect();
+            .map(|(key, val)| format!(">{}\n{}\n", key, val)).collect();
 
         // encrypt data
         let encrypted_data = passman_crypto::encrypt(&data, &password_file.key, &password_file.init_vec)?;
@@ -168,6 +182,3 @@ impl PasswordFile {
         Result::Ok(())
     }
 }
-
-#[cfg(test)]
-mod tests;

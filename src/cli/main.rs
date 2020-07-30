@@ -1,9 +1,10 @@
-use rand::thread_rng;
 use std::env;
 use std::io::{BufRead, BufReader, Write};
 use std::net::Shutdown;
 use std::net::TcpStream;
 use std::process::exit;
+
+use rand::thread_rng;
 
 fn main() {
     println!();
@@ -51,7 +52,7 @@ fn main() {
                     }
                 }
                 "close" | "-c" => {
-                    let data = format!("CLOSE\n'");
+                    let data = format!("CLOSE");
                     let res = msg_daemon(data);
                     if res == "OK" {
                         println!("\n File closed!\n");
@@ -90,22 +91,7 @@ fn main() {
                         println!("\n You need to open the file you want to delete! ");
                     }
                 }
-                "print" | "-p" => {
-                    let acc = ask_for_accountname();
-
-                    let data = format!("GET {}", &acc);
-                    let res = msg_daemon(data);
-                    let res = res.split(";").nth(1).unwrap().split(":").nth(1).unwrap();
-
-                    println!();
-                    println!("############################################");
-                    println!("#                                          ");
-                    println!("#        The password for {} is:           ", acc);
-                    println!("#                {}                        ", res);
-                    println!("#                                          ");
-                    println!("############################################");
-                    println!();
-                }
+                "print" | "-p" => print_command(&ask_for_accountname()),
                 "help" | "-h" => {
                     print_help();
                 }
@@ -208,7 +194,7 @@ fn main() {
                     }
                 }
                 "delete" => {
-                    let data = format!("DELETE {}", acc);
+                    let data = format!("DELETE {}", &acc);
                     let res = msg_daemon(data);
                     if res == "OK" {
                         println!("\n File is deleted!\n");
@@ -216,23 +202,31 @@ fn main() {
                         println!("\n You need to open the file you want to delete! ");
                     }
                 }
-                "print" | "-p" => {
-                    let data = format!("GET {}", acc);
-                    let res = msg_daemon(data);
-                    let res = res.split(";").nth(1).unwrap().split(":").nth(1).unwrap();
-                    println!();
-                    println!("############################################");
-                    println!("#                                          ");
-                    println!("#        The password for {} is:           ", acc);
-                    println!("#                {}                        ", res);
-                    println!("#                                          ");
-                    println!("############################################");
-                    println!();
-                }
+                "print" | "-p" => print_command(acc),
                 _ => print_help(),
             }
         }
         _ => print_help(),
+    }
+}
+
+fn print_command(acc : &String) {
+    let data = format!("GET {}", &acc);
+    let res = msg_daemon(data);
+
+    if res.starts_with("ERR NotFound") {
+        println!("There is no entry for '{}'.", acc);
+    } else {
+        let res = res.split(";").nth(1).unwrap().split(":").nth(1).unwrap();
+
+        println!();
+        println!("############################################");
+        println!("#                                          ");
+        println!("#        The password for {} is:           ", acc);
+        println!("#                {}                        ", res);
+        println!("#                                          ");
+        println!("############################################");
+        println!();
     }
 }
 
@@ -299,11 +293,10 @@ fn ask_for_username() -> String {
 /// assert_eq!(resp, "Ok".to_string());
 /// ```
 fn msg_daemon(request: String) -> String {
-    let mut tcp_stream = TcpStream::connect("localhost:7878").expect("Failed to connect.");
-    println!(
-        "Successfully connected to server {}",
-        tcp_stream.peer_addr().unwrap().to_string()
-    );
+    let mut tcp_stream = match TcpStream::connect("localhost:7878") {
+        Ok(s) => s,
+        Err(_) => return "Can not connect to Daemon. Is it running?".to_string(),
+    };
     // tcp_stream.set_read_timeout(Some(Duration::new(3, 0)));
     // tcp_stream.set_write_timeout(Some(Duration::new(3, 0)));
 
@@ -312,22 +305,14 @@ fn msg_daemon(request: String) -> String {
     tcp_stream
         .shutdown(Shutdown::Write)
         .expect("Can not shutdown Write.");
-    //println!("Sent '{}', awaiting reply...", request);
 
     let mut buffer = BufReader::new(tcp_stream);
     let mut s = String::new();
 
-    let response = match buffer.read_line(&mut s) {
-        Ok(_) => {
-            //println!("Got reply: {}", s);
-            s.to_string()
-        }
-        Err(e) => {
-            //println!("Failed to receive data: {}", e);
-            e.to_string()
-        }
-    };
-    response
+    match buffer.read_line(&mut s) {
+        Ok(_) => { s.to_string() }
+        Err(e) => { e.to_string() }
+    }
 }
 
 /// Returns a randomly generated password string
@@ -374,7 +359,7 @@ fn make_pass(length: u32) -> String {
         Ok(num) => {
             println!("num: {}", num);
             num
-        },
+        }
         Err(_) => 3,
     };
 
@@ -455,7 +440,6 @@ fn make_pass(length: u32) -> String {
 
 /// Prints a help message if user inputs invalid commands
 fn print_help() {
-
     println!("\nname: passman\nversion: 1.0\nauthors: Julian Riegraf, Patrick Toth\nabout: Simple cli password managment tool");
     println!("\nUsage");
     println!("\tpassman [OPTIONS] <INPUT>\n");
@@ -468,7 +452,6 @@ fn print_help() {
     println!("\tcreate <FILENAME> <MASTERPASSWORD> \t\tCreate a new password file with a master password.");
     println!("\topen <FILENAME> <MASTERPASSWORD> \t\tOpen the password file <FILENAME> with the password.");
     println!("\tdelete <FILENAME> <MASTERPASSWORD> \t\tDelete the password file <FILENAME>. You have to open it before you can delete it.\n");
-
 }
 
 /// Returns a String that contains the user password.

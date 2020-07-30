@@ -19,13 +19,13 @@
   ```
 - Create a new password file:
   ```
-  CREATE filename
+  CREATE FILENAME
   masterkey
   EOF
   ```
 - Open a existing password file:
   ```
-  OPEN filename
+  OPEN FILENAME
   masterkey
   EOF
   ```
