@@ -84,23 +84,22 @@ fn delete_entry() {
     assert_eq!(paswd_file.get_entry("Rust Nerds").is_err(), true);
 }
 
-// #[test]
-// fn de_and_encrypt() {
-//     env::set_var("RUST_BACKTRACE", "full");
-//     let filename = "src/daemon/password_file/test_password_files/pw_file.pass";
-//     fs::remove_file(filename);
-//     let mut paswd_file = PasswordFile::new(filename, "keeeey").unwrap();
-//     let vec = vec![EntryValue::new("username", "rustic expert"), EntryValue::new("password", "abc")];
-//
-//     paswd_file.add_entry("Rust Nerds", vec.clone()).unwrap();
-//     assert_eq!(paswd_file.get_entry("Rust Nerds").unwrap(), vec);
-//     println!("Init Vec before: {:?}", paswd_file.init_vec);
-//     PasswordFile::close(&mut paswd_file).unwrap();
-//
-//     let paswd_file = PasswordFile::open(filename, "keeeey").unwrap();
-//     assert_eq!(paswd_file.get_entry("Rust Nerds").unwrap(), vec);
-//     fs::remove_file(filename).unwrap();
-// }
+#[test]
+fn de_and_encrypt() {
+    let filename = "src/daemon/password_file/test_password_files/pw_file.pass";
+    let key = "aaaaaaaaaaaaaaaa";
+    fs::remove_file(filename);
+    let mut paswd_file = PasswordFile::new(filename, key).unwrap();
+    let vec = vec![EntryValue::new("username", "rustic_expert"), EntryValue::new("password", "abc")];
+
+    paswd_file.add_entry("Rust_Nerds", vec.clone()).unwrap();
+    assert_eq!(paswd_file.get_entry("Rust_Nerds").unwrap(), vec);
+    PasswordFile::close(&mut paswd_file).unwrap();
+
+    let paswd_file = PasswordFile::open(filename, key).unwrap();
+    assert_eq!(paswd_file.get_entry("Rust_Nerds").unwrap(), vec);
+    fs::remove_file(filename).unwrap();
+}
 //
 // #[test]
 // fn test() {

@@ -71,29 +71,24 @@ impl PasswordFile {
             .from_base64()
             .expect("Can not decode from base64");
 
-        println!("Init Vec after: {:?}", <&[u8; 16]>::try_from(init_vec.as_slice()).unwrap());
-
-
         // extract and validate data
         let encrypted_data: Vec<String> = contents.split("\n").skip(2)
             .map(|x| x.to_string())
             .collect();
         let encrypted_data: String = encrypted_data.join("\n");
 
-        println!("Encrypted data after: {:?}", encrypted_data);
+        println!("Encrypted data in open: {:?}", encrypted_data);
 
 
         // TODO: decrypt data
-        // let data = passman_crypto::decrypt(
-        //     &encrypted_data.as_bytes().to_vec(),
-        //     &key.to_string(),
-        //     <&[u8; 16]>::try_from(init_vec.as_slice()).map_err(|err| err.to_string())?).unwrap();
-        // let data = String::from_utf8(data.from_base64().map_err(|err| err.to_string())?)
-        //     .map_err(|err| err.to_string())?;
-        let data = encrypted_data;
+        let encrypted_data = encrypted_data.from_base64().map_err(|err| err.to_string())?;
+        let data = passman_crypto::decrypt(
+            &encrypted_data,
+            &key.to_string(),
+            <&[u8; 16]>::try_from(init_vec.as_slice()).map_err(|err| err.to_string())?);
 
         // validate data
-        let regex = r"^((>[a-zA-Z0-9]+\n((([^;\n]+:[^;\n]+);)*([^;\n]+:[^\n;]+)))\n)*(>[a-zA-Z0-9]+\n((([^;\n]+:[^;\n]+);)*([^;\n]+:[^\n;]+)))\n*$";
+        let regex = r"^((>.+\n((([^;\n]+:[^;\n]+);)*([^;\n]+:[^\n;]+)))\n)*(>.+\n((([^;\n]+:[^;\n]+);)*([^;\n]+:[^\n;]+)))\n*$";
         let re = Regex::new(regex).unwrap();
         if !data.is_empty() && !re.is_match(data.as_str()) {
             return Result::Err("Content is not proper formatted!".to_string());
@@ -121,10 +116,11 @@ impl PasswordFile {
             .map(|(key, val)| format!(">{}\n{}", key, val)).collect();
 
         // encrypt data
-        // let encrypted_data = passman_crypto::encrypt(&data, &password_file.key, &password_file.init_vec).unwrap();
-        // let encrypted_data = encrypted_data.to_base64(STANDARD);
+        let encrypted_data = passman_crypto::encrypt(&data, &password_file.key, &password_file.init_vec);
+        let encrypted_data = encrypted_data.to_base64(STANDARD);
 
-        let encrypted_data = data;
+        println!("Encrypted data in close: {:?}", encrypted_data);
+
 
         // create file and write content
         let path = Path::new(&password_file.filename);
