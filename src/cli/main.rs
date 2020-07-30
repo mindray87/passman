@@ -153,10 +153,7 @@ fn main() {
     }
 }
 
-fn ask_for_userinput(option: String) {
-    //...TODO
-}
-
+/// Returns a u32, that is used to evaluate the wanted password length.
 fn ask_for_pass() -> u32 {
     println!("passman will generate your password now.");
     println!("How long do you want your password to be? (maximum of 128.");
@@ -170,6 +167,7 @@ fn ask_for_pass() -> u32 {
     pw_length
 }
 
+/// Returns a string containing the accountname
 fn ask_for_accountname() -> String {
     let mut input_username = String::new();
 
@@ -182,6 +180,7 @@ fn ask_for_accountname() -> String {
     input_username
 }
 
+/// Returns a string containing the passwordfiles filename
 fn ask_for_filename() -> String {
     let mut input_username = String::new();
 
@@ -194,6 +193,7 @@ fn ask_for_filename() -> String {
     input_username
 }
 
+/// Returns a string containing the username
 fn ask_for_username() -> String {
     let mut input_username = String::new();
 
@@ -206,7 +206,20 @@ fn ask_for_username() -> String {
     input_username
 }
 
-fn msg_daemon(data: String) -> String {
+/// Returns a String, that contains the servers response.
+///
+/// # Arguments
+///
+/// *`request` - a String that contains the request to the server.
+///
+/// # Examples
+///
+/// ```
+/// let request = "ADD gmail\nusername:user;password:1234".to_string();
+/// let resp = msg_daemon(request);
+/// assert_eq!(resp, "Ok".to_string());
+/// ```
+fn msg_daemon(request: String) -> String {
     let mut tcp_stream = TcpStream::connect("localhost:7878").expect("Failed to connect.");
     println!(
         "Successfully connected to server {}",
@@ -215,7 +228,7 @@ fn msg_daemon(data: String) -> String {
     tcp_stream.set_read_timeout(Some(Duration::new(3, 0)));
     tcp_stream.set_write_timeout(Some(Duration::new(3, 0)));
 
-    let mut msg = data.as_bytes();
+    let mut msg = request.as_bytes();
     tcp_stream.write_all(msg).unwrap();
     tcp_stream
         .shutdown(Shutdown::Write)
@@ -240,9 +253,15 @@ fn msg_daemon(data: String) -> String {
 
 /// Returns a randomly generated password string
 ///
-/// #Arguments
+/// # Arguments
 ///
 /// * `length` - The chosen lenght for the password choosen by the user.
+///
+/// # Examples
+///
+/// ```
+/// let pass = make_pass(12);
+/// ```
 //TODO: Change arguments: uppercase: usize, lower: usize, digits: usize, specials: usize
 fn make_pass(length: u32) -> String {
     //TODO: make function that has 4 lists -> digits, uppercase lowercase, special chars !"§$%&...
@@ -283,6 +302,7 @@ fn print_help() {
     println ! ("if you leave the password field empty, we'll ask you for your preferred password choices and generate it randomly.");
 }
 
+/// Returns a String that contains the user password.
 fn yes_or_no() -> String {
     println!("you have not entered a password. Should passman create it for you? (y / n)");
     let mut password_gen = String::from("");
