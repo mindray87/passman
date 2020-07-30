@@ -1,47 +1,53 @@
 #!/usr/bin/env python3
-from builtins import FileNotFoundError, classmethod
-
 import os
 import socket
 import unittest
-import subprocess
+from builtins import FileNotFoundError, classmethod
 
 
 class Tests(unittest.TestCase):
 
+    @unittest.skip("demonstrating skipping")
     def test_create(self):
-        self.assertEqual(send_request(b'CREATE test_file'), 'OK')
+        self.assertEqual(send_request(b'CREATE test_file key'), 'OK')
 
+    @unittest.skip("demonstrating skipping")
     def test_add(self):
-        self.assertEqual(send_request(b'CREATE test_file'), 'OK')
+        self.assertEqual(send_request(b'CREATE test_file key'), 'OK')
         self.assertEqual(send_request(b'ADD gmail username:name;password:passwd'), 'OK')
 
+    # @unittest.skip("demonstrating skipping")
     def test_get(self):
-        self.assertEqual(send_request(b'CREATE test_file'), 'OK')
+        self.assertEqual(send_request(b'CREATE test_file key'), 'OK')
         self.assertEqual(send_request(b'ADD gmail username:name;password:passwd'), 'OK')
         self.assertEqual(send_request(b'GET gmail'), 'OK username:name;password:passwd')
+        print("")
 
+    @unittest.skip("demonstrating skipping")
     def test_delete(self):
-        self.assertEqual(send_request(b'CREATE test_file'), 'OK')
+        self.assertEqual(send_request(b'CREATE test_file key'), 'OK')
         self.assertEqual(send_request(b'ADD gmail username:name;password:passwd'), 'OK')
         self.assertEqual(send_request(b'GET gmail'), 'OK username:name;password:passwd')
         self.assertEqual(send_request(b'DELETE gmail'), 'OK')
         self.assertEqual(send_request(b'GET gmail'), 'ERR NotFound')
 
+    @unittest.skip("demonstrating skipping")
     def test_close(self):
-        self.assertEqual(send_request(b'CREATE test_file'), 'OK')
+        self.assertEqual(send_request(b'CREATE test_file key'), 'OK')
         self.assertEqual(send_request(b'CLOSE'), 'OK')
         self.assertEqual(send_request(b'GET gmail'), 'ERR NoOpenPasswordFile')
 
+    @unittest.skip("demonstrating skipping")
     def test_open_not_existing_file(self):
-        self.assertEqual(send_request(b'OPEN test_file'), 'ERR FileDoesNotExist')
+        self.assertEqual(send_request(b'OPEN test_file key'), 'ERR FileDoesNotExist')
 
+    @unittest.skip("demonstrating skipping")
     def test_open(self):
-        self.assertEqual(send_request(b'CREATE test_file'), 'OK')
+        self.assertEqual(send_request(b'CREATE test_file key'), 'OK')
         self.assertEqual(send_request(b'ADD gmail username:name;password:passwd'), 'OK')
         self.assertEqual(send_request(b'CLOSE'), 'OK')
         self.assertEqual(send_request(b'GET gmail'), 'ERR NoOpenPasswordFile')
-        self.assertEqual(send_request(b'OPEN test_file'), 'OK')
+        self.assertEqual(send_request(b'OPEN test_file key'), 'OK')
         self.assertEqual(send_request(b'GET gmail'), 'OK username:name;password:passwd')
 
     @classmethod

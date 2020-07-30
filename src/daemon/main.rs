@@ -1,5 +1,4 @@
-
-use std::{env, fs, time};
+use std::{env, fs, thread, time};
 use std::borrow::Borrow;
 use std::io::BufReader;
 use std::io::prelude::*;
@@ -15,7 +14,7 @@ use crate::entry_value::EntryValue;
 use crate::password_file::PasswordFile;
 
 mod entry_value;
-
+mod passman_crypto;
 mod password_file;
 
 type Result<T> = std::result::Result<T, String>;
@@ -119,27 +118,31 @@ fn get(psw_file: &Option<PasswordFile>, message: &String) -> Result<String> {
     let psw_file = psw_file.as_ref().ok_or("NoOpenPasswordFile".to_string())?;
     let mut vec_result: Vec<EntryValue> = psw_file.get_entry(message.split(" ").nth(1).unwrap().borrow())
         .or(Err(format!("NotFound")))?;
-    let v: Vec<String> = vec_result.iter_mut().map(|x| x.to_str()).collect();
-    Ok(v.join(";"))
+    let v: Vec<String> = vec_result.iter_mut().map(|x| x.to_string()).collect();
+    let msg = v.join(";");
+    write_to_clipboard(msg.clone());
+    Ok(msg)
 }
 
 
 fn create(message: &String) -> Result<PasswordFile> {
-    let filename = message.split(" ").nth(1).unwrap();
+    let filename = message.split(" ").nth(1).ok_or("BAD_REQUEST".to_string())?;
+    let key = message.split(" ").nth(2).ok_or("BAD_REQUEST".to_string())?;
     let path = env::var_os("HOME").unwrap();
 
     if fs::read_dir(&path).is_err() {
         fs::create_dir(&path).unwrap();
     }
     let path = PathBuf::from(path).join(".passman").join(&filename).as_path().with_extension("pass");
-    password_file::PasswordFile::new(path.to_str().unwrap())
+    password_file::PasswordFile::new(path.to_str().unwrap(), key)
 }
 
 fn open(message: &String) -> Result<PasswordFile> {
-    let filename = message.split(" ").nth(1).unwrap();
+    let filename = message.split(" ").nth(1).ok_or("BAD_REQUEST".to_string())?;
+    let key = message.split(" ").nth(2).ok_or("BAD_REQUEST".to_string())?;
     let path = env::var_os("HOME").unwrap();
     let path = PathBuf::from(path).join(".passman").join(&filename).as_path().with_extension("pass");
-    PasswordFile::open(&path.to_str().unwrap())
+    PasswordFile::open(&path.to_str().unwrap(), key)
 }
 
 fn close(psw_file_opt: &mut Option<PasswordFile>) -> Result<String> {
@@ -149,7 +152,18 @@ fn close(psw_file_opt: &mut Option<PasswordFile>) -> Result<String> {
     a
 }
 
-fn close_password_file() {}
+fn write_to_clipboard(message: String) {
+    let clp_thread = thread::spawn(move || {
+        let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
+        ctx.set_contents(message.to_owned()).unwrap();
+        let thirty_sec = time::Duration::from_secs(30);
+        thread::sleep(thirty_sec);
+        let content_after = ctx.get_contents().unwrap();
+        if message == content_after {
+            ctx.set_contents("".to_string()).unwrap();
+        }
+    });
+}
 
 #[cfg(test)]
 mod tests {}
