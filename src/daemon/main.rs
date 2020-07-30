@@ -81,11 +81,22 @@ fn main() {
     }
 }
 
+/// Refuses the connection to the server if the ip-address is not accepted
+///
+/// # Arguments
+///
+/// *`stream` - the used tcp stream
 fn refuse_connection(stream: &mut TcpStream) {
     stream.write(format!("IP-Address ist not accepted!").as_bytes()).unwrap();
     stream.flush().unwrap();
 }
 
+/// Returns a Result<String> with either Ok or an Error.
+///
+/// # Arguments
+///
+/// *`password_file` - the password file, where data is added
+/// *`message` - the request sent to the daemon
 fn add(password_file: Option<&mut PasswordFile>, message: &String) -> Result<String> {
     let password_file = password_file.ok_or("NoOpenPasswordFile".to_string())?;
     if message.split(" ").count() < 2 { return Err("BAD REQUEST".to_string()); }
@@ -108,6 +119,12 @@ fn add(password_file: Option<&mut PasswordFile>, message: &String) -> Result<Str
     Ok("".to_string())
 }
 
+/// Returns a Result<String> with either Ok or an Error.
+///
+/// # Arguments
+///
+/// *`psw_file` - the password file, where data is deleted
+/// *`message` - the request sent to the daemon
 fn delete(psw_file: Option<&mut PasswordFile>, message: &String) -> Result<String> {
     let mut psw_file = psw_file.ok_or("NoOpenPasswordFile".to_string())?;
     psw_file.delete_entry(message.split(" ").nth(1).unwrap().borrow())
@@ -115,6 +132,12 @@ fn delete(psw_file: Option<&mut PasswordFile>, message: &String) -> Result<Strin
     Ok("".to_string())
 }
 
+/// Returns a Result<String> with either the data for an account or an Error.
+///
+/// # Arguments
+///
+/// *`psw_file` - the password file, where data is deleted
+/// *`message` - the request sent to the daemon
 fn get(psw_file: &Option<PasswordFile>, message: &String) -> Result<String> {
     let psw_file = psw_file.as_ref().ok_or("NoOpenPasswordFile".to_string())?;
     let mut vec_result: Vec<EntryValue> = psw_file.get_entry(message.split(" ").nth(1).unwrap().borrow())
@@ -123,7 +146,11 @@ fn get(psw_file: &Option<PasswordFile>, message: &String) -> Result<String> {
     Ok(v.join(";"))
 }
 
-
+/// Returns the path to the created password file or an error if the creation went wrong.
+///
+/// # Arguments
+///
+/// *`message` - the request sent to the daemon
 fn create(message: &String) -> Result<PasswordFile> {
     let filename = message.split(" ").nth(1).unwrap();
     let path = env::var_os("HOME").unwrap();
@@ -135,6 +162,11 @@ fn create(message: &String) -> Result<PasswordFile> {
     password_file::PasswordFile::new(path.to_str().unwrap())
 }
 
+/// Returns the path to the opened password file or an error if the open process went wrong.
+///
+/// # Arguments
+///
+/// *`message` - the request sent to the daemon
 fn open(message: &String) -> Result<PasswordFile> {
     let filename = message.split(" ").nth(1).unwrap();
     let path = env::var_os("HOME").unwrap();
@@ -142,14 +174,17 @@ fn open(message: &String) -> Result<PasswordFile> {
     PasswordFile::open(&path.to_str().unwrap())
 }
 
+/// Returns an empty string if the file is closed or an error if the close process failed.
+///
+/// # Arguments
+///
+/// *`psw_file_opt` - contains the password file to close
 fn close(psw_file_opt: &mut Option<PasswordFile>) -> Result<String> {
     let psw_file = psw_file_opt.as_mut().ok_or("NoOpenPasswordFile".to_string())?;
     let a = PasswordFile::close(psw_file).map(|_| "".to_string()).map_err(|_| "Close failed".to_string());
     *psw_file_opt = None;
     a
 }
-
-fn close_password_file() {}
 
 #[cfg(test)]
 mod tests {}
