@@ -1,7 +1,6 @@
 use aes::Aes128;
-use block_modes::{BlockMode, Cbc, InvalidKeyIvLength};
+use block_modes::{BlockMode, Cbc};
 use block_modes::block_padding::Pkcs7;
-use hex_literal::hex;
 
 type Aes128Cbc = Cbc<Aes128, Pkcs7>;
 type Result<T> = std::result::Result<T, String>;
@@ -19,16 +18,10 @@ pub fn decrypt(ciphertext: &Vec<u8>, key: &String, initial_vector: &[u8]) -> Res
 
 #[cfg(test)]
 mod tests {
-    use aes::Aes128;
-    use block_modes::{BlockMode, Cbc};
-    use block_modes::block_padding::Pkcs7;
-    use hex_literal::hex;
     use rand::RngCore;
     use rand::rngs::OsRng;
 
     use crate::passman_crypto::{decrypt, encrypt};
-
-    type Aes128Cbc = Cbc<Aes128, Pkcs7>;
 
     #[test]
     fn test() {

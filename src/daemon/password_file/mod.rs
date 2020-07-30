@@ -2,10 +2,7 @@ extern crate regex;
 
 use std::collections::HashMap;
 use std::convert::TryFrom;
-use std::error::Error;
 use std::fs;
-use std::fs::File;
-use std::io::Write;
 use std::path::Path;
 
 use rand::RngCore;
@@ -14,9 +11,6 @@ use rustc_serialize::base64::{FromBase64, STANDARD, ToBase64};
 
 use crate::entry_value::EntryValue;
 use crate::passman_crypto;
-
-use super::entry_value;
-
 use self::regex::Regex;
 
 type Result<T> = std::result::Result<T, String>;

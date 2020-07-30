@@ -1,10 +1,9 @@
 use std::collections::HashMap;
-use std::{fs, env};
+use std::fs;
 use std::ops::Add;
 
 use crate::entry_value::EntryValue;
 use crate::password_file::PasswordFile;
-use crate::passman_crypto::{encrypt, decrypt};
 
 #[test]
 fn parse_file() {
@@ -37,7 +36,7 @@ fn parse_file() {
 
 #[test]
 fn open_file() {
-    let mut paswd_file = PasswordFile::open("src/daemon/password_file/test_password_files/password_file.pass", "key").unwrap();
+    let paswd_file = PasswordFile::open("src/daemon/password_file/test_password_files/password_file.pass", "key").unwrap();
     assert_eq!(paswd_file.entries.len(), 3);
     assert_eq!(paswd_file.init_vec, [233, 41, 226, 105, 74, 238, 246, 25, 38, 245, 142, 173, 133, 134, 159, 142]);
     assert!(paswd_file.is_open);
@@ -54,7 +53,7 @@ fn create_file() {
 
 #[test]
 fn get_entry() {
-    let mut paswd_file = PasswordFile::open("src/daemon/password_file/test_password_files/password_file.pass", "key").unwrap();
+    let paswd_file = PasswordFile::open("src/daemon/password_file/test_password_files/password_file.pass", "key").unwrap();
     assert_eq!(paswd_file.get_entry("Gmail").unwrap(),
                vec![EntryValue::new("username", "julianriegraf@gmail.com"), EntryValue::new("password", "1234567890")]);
 }
@@ -88,7 +87,7 @@ fn delete_entry() {
 fn de_and_encrypt() {
     let filename = "src/daemon/password_file/test_password_files/pw_file.pass";
     let key = "aaaaaaaaaaaaaaaa";
-    fs::remove_file(filename);
+    fs::remove_file(filename).unwrap_or(());
     let mut paswd_file = PasswordFile::new(filename, key).unwrap();
     let vec = vec![EntryValue::new("username", "rustic_expert"), EntryValue::new("password", "abc")];
 

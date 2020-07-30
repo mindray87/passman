@@ -125,7 +125,7 @@ fn add(password_file: Option<&mut PasswordFile>, message: &String) -> Result<Str
 /// *`psw_file` - the password file, where data is deleted
 /// *`message` - the request sent to the daemon
 fn delete(psw_file: Option<&mut PasswordFile>, message: &String) -> Result<String> {
-    let mut psw_file = psw_file.ok_or("NoOpenPasswordFile".to_string())?;
+    let psw_file = psw_file.ok_or("NoOpenPasswordFile".to_string())?;
     psw_file.delete_entry(message.split(" ").nth(1).unwrap().borrow())
         .or(Err(format!("NotFound")))?;
     Ok("".to_string())
@@ -190,7 +190,7 @@ fn close(psw_file_opt: &mut Option<PasswordFile>) -> Result<String> {
 }
 
 fn write_to_clipboard(message: String) {
-    let clp_thread = thread::spawn(move || {
+    thread::spawn(move || {
         let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
         ctx.set_contents(message.to_owned()).unwrap();
         let thirty_sec = time::Duration::from_secs(30);
