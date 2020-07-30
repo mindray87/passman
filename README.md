@@ -1,6 +1,12 @@
-# Passman
+<h1 align="center">
+    PASSMAN
+</h1>
 
+<p align="center">
 A simple password manager for your terminal.
+<br>
+[![Build Status](https://travis-ci.com/mindray87/pwd-man.svg?token=ziwkzZeesRqGqDpdiqQf&branch=master)](https://travis-ci.com/mindray87/pwd-man)
+</p>
 
 ## TODO:
 
