@@ -1,4 +1,3 @@
-extern crate clipboard;
 
 use std::{env, fs, time};
 use std::borrow::Borrow;
@@ -12,9 +11,8 @@ use clipboard::ClipboardContext;
 use clipboard::ClipboardProvider;
 use regex::Regex;
 
-use password_file::PasswordFile;
-
 use crate::entry_value::EntryValue;
+use crate::password_file::PasswordFile;
 
 mod entry_value;
 

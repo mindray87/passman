@@ -19,7 +19,6 @@ use other_clip::ClipboardProvider;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 
-mod clipboard;
 mod argument;
 
 fn main() {
