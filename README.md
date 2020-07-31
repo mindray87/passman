@@ -8,27 +8,15 @@ A simple password manager for your terminal.
 
 [![Build Status](https://travis-ci.com/mindray87/pwd-man.svg?token=ziwkzZeesRqGqDpdiqQf&branch=master)](https://travis-ci.com/mindray87/pwd-man)
 
-## TODO:
+## Features:
 
-### CLI
-- [x] parse arguments
-- [x] open connection to daemon
-- [x] send messages to daemon
-- [x] clipboard action
-- [x] password generator
-- [ ] encrypt socket connection
+* Remembers your passwords
+* Saves your passwords in an aes encrypted file in your home directory
+* Print your passwords in the console
+* Copy your password into the clipboard
+* Clears your password from the clipboard after 30 seconds
 
-### Daemon  
-- [x] open and save password file
-- [x] encrypt and decrypt password file
-- [x] create password file
-- [x] write, read, and delete passwords
-- [x] receive messages
-- [x] send messages
-- [x] accept only messages form localhost
-- [ ] auto close password file
-
-## Build and Install
+## Build and Install (on Ubuntu)
 ```shell script
 # install dependencies
 sudo apt-get install -y libx11-xcb-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-xfixes0-dev
@@ -46,7 +34,6 @@ TODO: Add Passman to PATH
 ```
 
 ## Build Documentation
-#### build: 
 ```shell script
 cargo doc --open --no-deps --bin passman-cli --bin passman-daemon 
 ```
