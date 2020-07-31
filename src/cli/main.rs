@@ -24,7 +24,6 @@ fn main() {
             let cmd = &args[1];
             match &cmd[..] {
                 "add" | "-a" => {
-                    //println!("debug 4 add");
                     let acc = ask_for_accountname();
                     let username = ask_for_username();
                     let password = yes_or_no();
@@ -32,7 +31,6 @@ fn main() {
                         "ADD {} username:{};password:{}",
                         &acc, &username, &password
                     );
-                    println!("data: {}", data);
                     let res = msg_daemon(data);
                     if res == "OK" {
                         println!("\n New account added to your password file!\n");
@@ -447,10 +445,10 @@ fn print_help() {
     println!("OPTIONS");
     println!("\t-a, add <ACCOUNTNAME> <USERNAME> <PASSWORD> \tAdd an account to the password file. If you leave Input fields empty, passman will ask you to provide them.");
     println!("\t-g, get <ACCOUNTNAME> \t\t\t\tGet the password for the given account <ACCOUNTNAME>. The password will be copied to your clipboard for thirty seconds.");
+    println!("\tdelete <ACCOUNTNAME> \t\tDelete the <ACCOUNTNAME> from the password file. You have to open the file before you can delete from it.\n");
     println!("\t-p, print <ACCOUNTNAME> \t\t\tPrints the password of account <ACCOUNTNAME> to your terminal.\n");
     println!("\tcreate <FILENAME> <MASTERPASSWORD> \t\tCreate a new password file with a master password.");
     println!("\topen <FILENAME> <MASTERPASSWORD> \t\tOpen the password file <FILENAME> with the password.");
-    println!("\tdelete <FILENAME> <MASTERPASSWORD> \t\tDelete the password file <FILENAME>. You have to open it before you can delete it.\n");
 }
 
 /// Returns a String that contains the user password.
