@@ -453,7 +453,7 @@ fn print_help() {
 
 /// Returns a String that contains the user password.
 fn yes_or_no() -> String {
-    print!("you have not entered a password. Should passman create it for you? (y / n)");
+    println!("you have not entered a password. Should passman create it for you? (y / n)");
     let mut password_gen = String::from("");
     let mut answer = String::new();
     std::io::stdin()
@@ -467,7 +467,7 @@ fn yes_or_no() -> String {
             password_gen = make_pass(len);
         }
         "n" | "N" => {
-            print!("Please enter your custom password now: ");
+            println!("Please enter your custom password now: ");
             let mut answer = String::new();
             std::io::stdin()
                 .read_line(&mut answer)
