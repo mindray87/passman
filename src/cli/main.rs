@@ -24,7 +24,6 @@ fn main() {
             let cmd = &args[1];
             match &cmd[..] {
                 "add" | "-a" => {
-                    //println!("debug 4 add");
                     let acc = ask_for_accountname();
                     let username = ask_for_username();
                     let password = yes_or_no();
@@ -32,7 +31,6 @@ fn main() {
                         "ADD {} username:{};password:{}",
                         &acc, &username, &password
                     );
-                    println!("data: {}", data);
                     let res = msg_daemon(data);
                     if res == "OK" {
                         println!("\n New account added to your password file!\n");
@@ -455,7 +453,7 @@ fn print_help() {
 
 /// Returns a String that contains the user password.
 fn yes_or_no() -> String {
-    print!("you have not entered a password. Should passman create it for you? (y / n)");
+    println!("you have not entered a password. Should passman create it for you? (y / n)");
     let mut password_gen = String::from("");
     let mut answer = String::new();
     std::io::stdin()
@@ -469,7 +467,7 @@ fn yes_or_no() -> String {
             password_gen = make_pass(len);
         }
         "n" | "N" => {
-            print!("Please enter your custom password now: ");
+            println!("Please enter your custom password now: ");
             let mut answer = String::new();
             std::io::stdin()
                 .read_line(&mut answer)
