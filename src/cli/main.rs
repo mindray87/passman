@@ -76,7 +76,7 @@ fn main() {
                         println!("\n Entry is deleted!\n");
                     } else {
                         print_error();
-                        println!("\n You need to open the file you want to delete! ");
+                        println!("\n You need to open the file, where you want to delete the entry! ");
                     }
                 }
                 "print" | "-p" => print_command(&ask_for_accountname()),

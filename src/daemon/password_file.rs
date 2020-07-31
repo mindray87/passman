@@ -17,7 +17,7 @@ use self::regex::Regex;
 type Result<T> = std::result::Result<T, String>;
 
 
-
+/// Representation of a password file
 pub struct PasswordFile {
     filename: String,
     key: String,
@@ -26,11 +26,21 @@ pub struct PasswordFile {
     entries: HashMap<String, Vec<EntryValue>>,
 }
 
+/// Returns the String value of a Vec
+///
+/// # Arguments
+///
+/// *`v` - the vector of Entry values
 fn vec_to_string(v: &mut Vec<EntryValue>) -> String {
     let v: Vec<String> = v.iter_mut().map(|x| x.to_string()).collect();
     v.join(";")
 }
 
+/// Returns a Result String for the key validation process
+///
+/// # Arguments
+///
+/// *`key` - the encryption key
 fn validate_key(key: &str) -> Result<String> {
     if key.len() > 16 { return Err("KeyLimitExceeded".to_string()); }
     let k = &mut [65 as u8; 16];
@@ -39,6 +49,12 @@ fn validate_key(key: &str) -> Result<String> {
 }
 
 impl PasswordFile {
+    /// Returns a newly created Passwordfile
+    ///
+    /// # Arguments
+    ///
+    /// *`filename` - the name of the file
+    /// *`key` - the encryption key for the file
     pub fn new(filename: &str, key: &str) -> Result<Self> {
         let key = validate_key(key)?;
         let mut init_vec = [0; 16];
@@ -58,8 +74,12 @@ impl PasswordFile {
         })
     }
 
+    /// Returns the handle for a Passwordfile
     ///
+    /// # Arguments
     ///
+    /// *`filename` - the name of the password file
+    /// *`key` - the encryption key for the file
     pub fn open(filename: &str, key: &str) -> Result<PasswordFile> {
 
         // validate the key
@@ -112,6 +132,10 @@ impl PasswordFile {
         Result::Ok(psw_file)
     }
 
+    /// Returns the result of the closing process of an openend password file
+    ///
+    /// # Arguments
+    /// *`password_file` - the opened password file
     pub fn close(password_file: &mut PasswordFile) -> Result<()> {
 
         // serialize data
@@ -131,6 +155,11 @@ impl PasswordFile {
         Result::Ok(())
     }
 
+    /// Returns the Entry for an account in a password file
+    ///
+    /// # Arguments
+    ///
+    /// *`entry_name` - the accountname stored in the password file
     pub fn get_entry(&self, entry_name: &str) -> Result<Vec<EntryValue>> {
         match self.entries.get(entry_name) {
             Some(entry) => Ok(entry.to_vec()),
@@ -138,14 +167,27 @@ impl PasswordFile {
         }
     }
 
+    /// Returns the result of the add an entry to the password file process.
+    ///
+    /// # Arguments
+    ///
+    /// *`entry_name` - the accountname for a password file
+    /// *`values` - the values, e.g. username and password
     pub fn add_entry(&mut self, entry_name: &str, values: Vec<EntryValue>) -> Result<()> {
         self.entries.insert(entry_name.to_string(), values);
         Ok(())
     }
 
-    /// Deletes an entry from the password file.
+    /// Returns the result of Deleting an entry from the password file.
+    ///
+    /// # Arguments
+    ///
+    /// *`entry_name` - Accountname of the entry
+    ///
+    /// # Examples
+    ///
     /// ```
-    ///         let mut p = PasswordFile::new("fielname").unwrap();
+    ///         let mut p = PasswordFile::new("filename").unwrap();
     ///         p.add_entry("entry_name", vec![EntryValue::new("key","value")]);
     ///         assert!(p.get_entry("entry_name").is_ok());
     ///         p.delete_entry("entry_name");
@@ -158,7 +200,7 @@ impl PasswordFile {
         }
     }
 
-    /// Parses the data of a password file into a hashmap.
+    /// Returns the result of parsing the data of a password file into a hashmap.
     ///
     /// # Arguments
     ///
