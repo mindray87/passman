@@ -7,7 +7,7 @@ A simple password manager for your terminal.<br>
 <a href="https://github.com/mindray87/passman">Github Repository</a>
 </p>
 
-[![Build Status](https://travis-ci.com/mindray87/pwd-man.svg?token=ziwkzZeesRqGqDpdiqQf&branch=master)](https://travis-ci.com/mindray87/pwd-man)
+[![Build Status](https://travis-ci.com/mindray87/passman.svg?token=ziwkzZeesRqGqDpdiqQf&branch=master)](https://travis-ci.com/mindray87/passman)
 
 ## Features:
 
