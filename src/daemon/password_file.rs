@@ -152,8 +152,10 @@ impl PasswordFile {
     ///         assert!(p.get_entry("entry_name").is_err());
     /// ```
     pub fn delete_entry(&mut self, entry_name: &str) -> Result<()> {
-        self.entries.remove(entry_name);
-        Ok(())
+        match self.entries.remove(entry_name) {
+            Some(_) => Ok(()),
+            None => Err("NotFound".to_string())
+        }
     }
 
     /// Parses the data of a password file into a hashmap.

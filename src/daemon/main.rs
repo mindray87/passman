@@ -126,9 +126,10 @@ fn add(password_file: Option<&mut PasswordFile>, message: &String) -> Result<Str
 /// *`message` - the request sent to the daemon
 fn delete(psw_file: Option<&mut PasswordFile>, message: &String) -> Result<String> {
     let psw_file = psw_file.ok_or("NoOpenPasswordFile".to_string())?;
-    psw_file.delete_entry(message.split(" ").nth(1).unwrap().borrow())
-        .or(Err(format!("NotFound")))?;
-    Ok("".to_string())
+    match message.split(" ").nth(1) {
+        Some(x) => psw_file.delete_entry(x).map(|_| "".to_string()),
+        None => Err("NotFound".to_string())
+    }
 }
 
 /// Returns a Result<String> with either the data for an account or an Error.

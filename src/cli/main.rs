@@ -7,8 +7,6 @@ use std::process::exit;
 use rand::thread_rng;
 
 fn main() {
-
-
     let args: Vec<String> = env::args().collect();
 
     let acc: &String;
@@ -187,6 +185,7 @@ fn main() {
                 "delete" => {
                     let data = format!("DELETE {}", &acc);
                     let res = msg_daemon(data);
+                    println!("res: '{}'", res);
                     if res == "OK" {
                         println!("\n Entry is deleted!\n");
                     } else {
@@ -202,24 +201,24 @@ fn main() {
     }
 }
 
-fn print_command(acc : &String) {
+fn print_command(acc: &String) {
     let data = format!("GET {}", &acc);
     let res = msg_daemon(data);
 
     if res.starts_with("ERR NotFound") {
         println!("There is no entry for '{}'.", acc);
-    } else {
-        let res = res.split(";").nth(1).unwrap().split(":").nth(1).unwrap();
-
-        println!();
-        println!("############################################");
-        println!("#                                          ");
-        println!("#        The password for {} is:           ", acc);
-        println!("#                {}                        ", res);
-        println!("#                                          ");
-        println!("############################################");
-        println!();
+        return;
     }
+    let res = res.split(";").nth(1).unwrap().split(":").nth(1).unwrap();
+
+    println!();
+    println!("############################################");
+    println!("#                                          ");
+    println!("#        The password for {} is:           ", acc);
+    println!("#                {}                        ", res);
+    println!("#                                          ");
+    println!("############################################");
+    println!();
 }
 
 /// Returns a u32, that is used to evaluate the wanted password length.
@@ -289,8 +288,6 @@ fn msg_daemon(request: String) -> String {
         Ok(s) => s,
         Err(_) => return "Can not connect to Daemon. Is it running?".to_string(),
     };
-    // tcp_stream.set_read_timeout(Some(Duration::new(3, 0)));
-    // tcp_stream.set_write_timeout(Some(Duration::new(3, 0)));
 
     let msg = request.as_bytes();
     tcp_stream.write_all(msg).unwrap();
@@ -347,13 +344,7 @@ fn make_pass(length: u32) -> String {
         .expect("Failed to read line");
 
     let answer = answer.trim();
-    let answer: u32 = match answer.trim().parse() {
-        Ok(num) => {
-            println!("num: {}", num);
-            num
-        }
-        Err(_) => 3,
-    };
+    let answer: u32 = answer.trim().parse().unwrap_or(3);
 
     if answer == 2 {
         char_list = upper
@@ -464,7 +455,7 @@ fn print_help() {
 
 /// Returns a String that contains the user password.
 fn yes_or_no() -> String {
-    println!("you have not entered a password. Should passman create it for you? (y / n)");
+    print!("you have not entered a password. Should passman create it for you? (y / n)");
     let mut password_gen = String::from("");
     let mut answer = String::new();
     std::io::stdin()
@@ -478,14 +469,14 @@ fn yes_or_no() -> String {
             password_gen = make_pass(len);
         }
         "n" | "N" => {
-            println!("Please enter your costum password now: ");
+            print!("Please enter your custom password now: ");
             let mut answer = String::new();
             std::io::stdin()
                 .read_line(&mut answer)
                 .expect("Failed to read line");
             password_gen = answer.trim().to_owned();
             if password_gen.len() <= 3 {
-                println!("min passwordlength is 4");
+                println!("Min password length is 4");
                 exit(1);
             }
             print_help();

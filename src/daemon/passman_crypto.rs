@@ -12,7 +12,8 @@ pub fn encrypt(text: &String, key: &String, initial_vector: &[u8]) -> Result<Vec
 
 pub fn decrypt(ciphertext: &Vec<u8>, key: &String, initial_vector: &[u8]) -> Result<String> {
     let cipher = Aes128Cbc::new_var(&key.as_bytes(), &initial_vector).unwrap();
-    let decrypted_ciphertext = cipher.decrypt_vec(&ciphertext.as_slice()).unwrap();
+    let decrypted_ciphertext = cipher.decrypt_vec(&ciphertext.as_slice())
+        .map_err(|e| e.to_string())?;
     String::from_utf8(decrypted_ciphertext).map_err(|e| e.to_string())
 }
 
