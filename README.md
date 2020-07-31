@@ -13,6 +13,7 @@ A simple password manager for your terminal.
 * Remembers your passwords
 * Saves your passwords in an aes encrypted file in your home directory
 * Print your passwords in the console
+* Generates passwords for you
 * Copy your password into the clipboard
 * Clears your password from the clipboard after 30 seconds
 
