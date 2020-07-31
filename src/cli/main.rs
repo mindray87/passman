@@ -7,16 +7,7 @@ use std::process::exit;
 use rand::thread_rng;
 
 fn main() {
-    println!();
-    println!("############################################");
-    println!("#                                          #");
-    println!("#        Starting passman                  #");
-    println!("#              (\\./)                       #");
-    println!("#              (-.-)                       #");
-    println!("#              (.)(.)                      #");
-    println!("#                                          #");
-    println!("############################################");
-    println!();
+
 
     let args: Vec<String> = env::args().collect();
 
@@ -48,7 +39,7 @@ fn main() {
                     if res == "OK" {
                         println!("\n New account added to your password file!\n");
                     } else {
-                        println!("\n response is {}", res);
+                        print_error();
                     }
                 }
                 "close" | "-c" => {
@@ -57,7 +48,7 @@ fn main() {
                     if res == "OK" {
                         println!("\n File closed!\n");
                     } else {
-                        println!("\n response is {}", res);
+                        print_error();
                     }
                 }
                 "create" | "open" => {
@@ -78,7 +69,7 @@ fn main() {
                     if res == "OK" {
                         println!("\n File ready!\n");
                     } else {
-                        println!("\n response is {}", res);
+                        print_error();
                     }
                 }
                 "delete" => {
@@ -88,6 +79,7 @@ fn main() {
                     if res == "OK" {
                         println!("\n File is deleted!\n");
                     } else {
+                        print_error();
                         println!("\n You need to open the file you want to delete! ");
                     }
                 }
@@ -145,11 +137,10 @@ fn main() {
                     if res == "OK" {
                         println!("\n New account added to your password file!\n");
                     } else {
-                        println!("\n response is {}", res);
+                        print_error();
                     }
                 }
                 "create" | "open" => {
-                    println!("args len create open 3: {}", args.len());
                     if args.len() >= 3 {
                         filename = &args[2];
                     } else {
@@ -173,7 +164,7 @@ fn main() {
                     if res == "OK" {
                         println!("\n File ready!\n");
                     } else {
-                        println!("\n response is {}", res);
+                        print_error();
                     }
                 }
                 "get" | "-g" => {
@@ -190,7 +181,7 @@ fn main() {
                         println!("############################################");
                         println!();
                     } else {
-                        println!("\n Something went wrong");
+                        print_error();
                     }
                 }
                 "delete" => {
@@ -199,6 +190,7 @@ fn main() {
                     if res == "OK" {
                         println!("\n File is deleted!\n");
                     } else {
+                        print_error();
                         println!("\n You need to open the file you want to delete! ");
                     }
                 }
@@ -436,6 +428,22 @@ fn make_pass(length: u32) -> String {
     let mut pwd = String::new();
     pwd += &pass.into_iter().collect::<String>();
     pwd
+}
+
+fn print_error() {
+    println!();
+    println!("############################################");
+    println!("#                                          #");
+    println!("#                                          #");
+    println!("#        Starting passman                  #");
+    println!("#              (\\./)                       #");
+    println!("#              (-.-)                       #");
+    println!("#              (.)(.)                      #");
+    println!("#                                          #");
+    println!("#       Something went wrong               #");
+    println!("#                                          #");
+    println!("############################################");
+    println!();
 }
 
 /// Prints a help message if user inputs invalid commands
