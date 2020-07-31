@@ -77,7 +77,7 @@ fn main() {
                     let data = format!("DELETE {}", &acc);
                     let res = msg_daemon(data);
                     if res == "OK" {
-                        println!("\n File is deleted!\n");
+                        println!("\n Entry is deleted!\n");
                     } else {
                         print_error();
                         println!("\n You need to open the file you want to delete! ");
@@ -188,7 +188,7 @@ fn main() {
                     let data = format!("DELETE {}", &acc);
                     let res = msg_daemon(data);
                     if res == "OK" {
-                        println!("\n File is deleted!\n");
+                        println!("\n Entry is deleted!\n");
                     } else {
                         print_error();
                         println!("\n You need to open the file you want to delete! ");
