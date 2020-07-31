@@ -1,7 +1,3 @@
-mod password_file;
-mod entry_value;
-mod passman_crypto;
-
 use std::{env, fs, thread, time};
 use std::borrow::Borrow;
 use std::io::BufReader;
@@ -16,6 +12,10 @@ use regex::Regex;
 
 use crate::entry_value::EntryValue;
 use crate::password_file::PasswordFile;
+
+mod password_file;
+mod entry_value;
+mod passman_crypto;
 
 type Result<T> = std::result::Result<T, String>;
 
@@ -39,8 +39,6 @@ fn main() {
 
         buf_reader.read_line(&mut buffer).unwrap();
 
-        println!("Message: '{}'", buffer);
-
         let response: Result<String> = match buffer
             .split(" ")
             .nth(0)
@@ -55,7 +53,6 @@ fn main() {
                 match create(&buffer) {
                     Ok(file) => {
                         password_file.replace(file);
-                        assert!(password_file.is_some());
                         Ok("".to_string())
                     }
                     Err(e) => Err(e)
@@ -65,7 +62,6 @@ fn main() {
                 match open(&buffer) {
                     Ok(pwd_file) => {
                         password_file = Some(pwd_file);
-                        assert!(password_file.is_some());
                         Ok("".to_string())
                     }
                     Err(e) => Err(e)
@@ -146,9 +142,7 @@ fn get(psw_file: &Option<PasswordFile>, message: &String) -> Result<String> {
     let mut vec_result: Vec<EntryValue> = psw_file.get_entry(message.split(" ").nth(1).unwrap().borrow())
         .or(Err(format!("NotFound")))?;
     let v: Vec<String> = vec_result.iter_mut().map(|x| x.to_string()).collect();
-    let msg = v.join(";");
-    write_to_clipboard(msg.clone());
-    Ok(msg)
+    Ok(v.join(";"))
 }
 
 /// Copies the password for an account to the clipboard.
@@ -165,6 +159,7 @@ fn clipboard(psw_file: &Option<PasswordFile>, message: &String) -> Result<String
     write_to_clipboard(password.trim().to_string());
     Ok("".to_string())
 }
+
 /// Returns the path to the created password file or an error if the creation went wrong.
 ///
 /// # Arguments
@@ -207,12 +202,12 @@ fn close(psw_file_opt: &mut Option<PasswordFile>) -> Result<String> {
     a
 }
 
+/// Copies a string to the clipboard and removes it after 30 seconds.
 fn write_to_clipboard(message: String) {
     thread::spawn(move || {
         let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
         ctx.set_contents(message.to_owned()).unwrap();
-        let thirty_sec = time::Duration::from_secs(30);
-        thread::sleep(thirty_sec);
+        thread::sleep(time::Duration::from_secs(30));
         let content_after = ctx.get_contents().unwrap();
         if message == content_after {
             ctx.set_contents("".to_string()).unwrap();
