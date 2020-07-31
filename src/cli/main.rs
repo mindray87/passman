@@ -475,9 +475,9 @@ fn yes_or_no() -> String {
             password_gen = answer.trim().to_owned();
             if password_gen.len() <= 3 {
                 println!("Min password length is 4");
+                print_help();
                 exit(1);
             }
-            print_help();
         }
         _ => {
             print_help();
