@@ -68,7 +68,7 @@ fn main() {
                         print_error();
                     }
                 }
-                "delete" => {
+                "delete" | "-d" => {
                     let acc = ask_for_accountname();
                     let data = format!("DELETE {}", &acc);
                     let res = msg_daemon(data);
@@ -180,7 +180,7 @@ fn main() {
                         print_error();
                     }
                 }
-                "delete" => {
+                "delete" | "-d" => {
                     let data = format!("DELETE {}", &acc);
                     let res = msg_daemon(data);
                     println!("res: '{}'", res);
@@ -445,7 +445,7 @@ fn print_help() {
     println!("OPTIONS");
     println!("\t-a, add <ACCOUNTNAME> <USERNAME> <PASSWORD> \tAdd an account to the password file. If you leave Input fields empty, passman will ask you to provide them.");
     println!("\t-g, get <ACCOUNTNAME> \t\t\t\tGet the password for the given account <ACCOUNTNAME>. The password will be copied to your clipboard for thirty seconds.");
-    println!("\tdelete <ACCOUNTNAME> \t\tDelete the <ACCOUNTNAME> from the password file. You have to open the file before you can delete from it.\n");
+    println!("\t-d, delete <ACCOUNTNAME> \t\tDelete the <ACCOUNTNAME> from the password file. You have to open the file before you can delete from it.\n");
     println!("\t-p, print <ACCOUNTNAME> \t\t\tPrints the password of account <ACCOUNTNAME> to your terminal.\n");
     println!("\tcreate <FILENAME> <MASTERPASSWORD> \t\tCreate a new password file with a master password.");
     println!("\topen <FILENAME> <MASTERPASSWORD> \t\tOpen the password file <FILENAME> with the password.");
