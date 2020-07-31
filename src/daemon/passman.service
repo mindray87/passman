@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 Restart=always
 RestartSec=3
-ExecStart=/home/<<USER>>/passman/target/debug/passman-daemon
+ExecStart=/home/<<USER>>/passman/target/debug/passmand
 
 [Install]
 WantedBy=multi-user.target

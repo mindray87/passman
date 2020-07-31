@@ -31,11 +31,14 @@ sudo cp ~/passman/src/daemon/passman.service /etc/systemd/system/
 sudo sed -i "s/<<USER>>/$USER/g" /etc/systemd/system/passman.service
 sudo systemctl start passman
 
+# add to path
+cargo install --path .
+
 # run the cli
-TODO: Add Passman to PATH
+passman
 ```
 
 ## Build Documentation
 ```shell script
-cargo doc --open --no-deps --bin passman-cli --bin passman-daemon 
+cargo doc --open --no-deps --bin passman --bin passmand 
 ```
